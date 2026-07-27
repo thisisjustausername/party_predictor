@@ -76,7 +76,7 @@ def speech_extraction_aggressive(speaks: list) -> list[dict[str, dict[str, str |
             talker = {'surname': talker['nachname'], 'first_name': talker['vorname'], 'party': talker.get('fraktion', None)}
             speech = speech[1:]
             for index, abstract in enumerate(speech):
-                if abstract['@klasse'] == 'J_1' and index < len(speech) - 1 and index != 0:
+                if abstract['@klasse'] == 'J_1' and (index == len(speech) - 1):
                     # print(abstract)
                     continue
                     # NOTE: also removing valid parts of speeches, but most of them are from Bundestagspräsident*in
