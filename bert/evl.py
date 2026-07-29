@@ -2,31 +2,41 @@
 Evaluate the model by computing metrics.
 '''
 
-import evaluate as evl
-import numpy as np
-import torch
+import evaluate
 
-from bert import parameters as params
+from bert.parameters import *
 
-metric = evl.load("seqeval")
+metric = evaluate.load('seqeval')
 
-def evaluate(model, data_loader):
+def evaluate_model(model, data_loader, tokens_included: bool = False):
     # Compute accuracy of model on data provided by data_loader
-    # num_instances = len(data_loader.dataset)
+    num_instances = len(data_loader.dataset)
     labels = []
     predictions = []
-    with torch.no_grad():
+    with torch.no_grad(): # This tells the model that we're not training
+                        # Will not remember gradients for this block
         model.eval()
+
         for i in iter(data_loader):
-            X, y = i
-            X = {k: v.to(params.device) for k, v in X.items()}
-            y_preds = model(X)
-            mask = (y != -100)
-            filtered_pred = y_preds[mask]
-            filtered_y = y[mask].float()
-            labels.extend(filtered_y.cpu().numpy())
-            predictions.extend(filtered_pred.cpu().numpy())
-    res = metric.compute(predictions=predictions, references=labels)
-    text_labels = [params.ner_labels[i] for i in  np.argmin(np.abs(labels - np.array(params.ner_labels)), axis=1).tolist()]
-    text_preds = [params.ner_labels[i] for i in np.argmin(np.abs(predictions - np.array(params.ner_labels)), axis=1).tolist()]
-    return res, [{"label": a, "prediction": b, "text_label": c, "text_prediction": d} for a, b, c, d in zip(labels, predictions, text_preds, text_labels)]
+            if tokens_included:
+                X, y, tokens = i
+            else:
+                X, y = i
+            X = {k: v.to(device) for k, v in X.items()}
+            y_probs = model(X)
+            y_preds = torch.argmax(y_probs, dim=-1)
+            for row_y, row_pred in zip(y, y_preds):
+                label_row = []
+                preds_row = []
+                for yo, yp in zip(row_y, row_pred):
+                    if yo != -100:
+                        # if yo.item() == yp.item() and yo.item() != 0:
+                            # print('Correct prediction:', yo.item(), yp.item())
+                            # print('Predicted label:', ner_labels[yp.item()])
+                        label_row.append(ner_labels[yo])
+                        preds_row.append(ner_labels[yp])
+
+                predictions.append(preds_row)
+                labels.append(label_row)
+
+    return metric.compute(references=labels, predictions=predictions), {'labels': labels, 'predictions': predictions}
