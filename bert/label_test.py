@@ -2,11 +2,11 @@ import json
 import os
 
 import pandas as pd
+import torch
 
-from bert import parameters as params
-from bert import preprocessing as pp
-from bert.data_set import do_all
-from bert.datatypes import BertModel
+import bert.parameters as params
+from bert.data_set import do_all, ds_path
+from bert.datatypes import BertNerModel
 
 model_name = 'model_99'
 
@@ -24,25 +24,25 @@ for index, i in enumerate(raw_data):
         article_mapping.append((index, j, num))
         num += 1
 
-test = do_all(paths, split=input_length, create_y=False, all_tokens=all_tokens, shuffle=False)
+test = do_all(paths, split=params.input_length, create_y=False, shuffle=False)
 
 
 predictions = []
 
-with open(os.path.join(repo_base_path, f'finetuning/stats/{model_name}.json'), 'r') as f:
+with open(os.path.join(params.repo_base_path, f'finetuning/stats/{model_name}.json'), 'r') as f:
     stats = json.load(f)
 batch_size = stats['batch_size']
 
-model = BertModel()
-model.load_state_dict(torch.load(os.path.join(repo_base_path, f'finetuning/ft/{model_name}')))
-model = model.to(device)
+model = BertNerModel()
+model.load_state_dict(torch.load(os.path.join(params.repo_base_path, f'finetuning/ft/{model_name}')))
+model = model.to(params.device)
 labels = []
 idx = 0
 seen_by_doc = {}
 with torch.no_grad():
     model.eval()
     for X in iter(test):
-        X = {k: v.to(device) for k, v in X.items()}
+        X = {k: v.to(params.device) for k, v in X.items()}
         y_probs = model(X)
         y_preds = torch.argmax(y_probs, dim=-1).clone().detach()
 
@@ -54,7 +54,7 @@ with torch.no_grad():
                 if wid is None or wid in seen:
                     continue
                 seen.add(wid)
-                labels.append(ner_labels[y_preds[row, pos].item()])
+                labels.append(params.ner_labels[y_preds[row, pos].item()])
             idx += 1
 
 data = []
@@ -62,7 +62,7 @@ for path in paths:
     with open(path, 'r') as f:
         d = json.load(f)
     data.extend(d)
-clean_data = [pparams.clean_tokens(i['tokens']) for i in data]
+clean_data = [params.clean_tokens(i['tokens']) for i in data]
 X = [[e['TOKEN'] for e in i] for i in clean_data]
 x_flat = [e for i in X for e in i]
 
@@ -99,7 +99,7 @@ for index, labels in enumerate(labels_per_doc):
     cd = clean_data[index]
     language_idx, article_idx = article_mapping[index][:2]
     for cl, lab in zip(cd, labels):
-        indices: list = cl['ids'] # type: ignore
+        indices: list = cl['ids']
         lbs = [lab for _ in indices] if len(indices) < 2 or not lab.startswith('B-') else [lab] + ['I-' + lab[2:] for _ in range(len(indices) - 1)]
         for i, l in zip(indices, lbs):
             raw_data[language_idx][article_idx]['tokens'][i]['TAG'] = l
