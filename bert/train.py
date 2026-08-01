@@ -36,11 +36,7 @@ def clean_eval(eval_res, add_key_name: str | None = None) -> dict:
     return {add_key_name + k: {vk: float(vv) for vk, vv in v.items()} if isinstance(v, dict) else float(v) for k, v in eval_res.items()}
 
 
-train = do_all([ds_path('train/de.json'), ds_path('train/fr.json')], split=params.input_length, create_y=True, shuffle=True)
-val = do_all([ds_path('dev/de.json'), ds_path('dev/fr.json'), ds_path('dev/en.json')], split=params.input_length, create_y=True, shuffle=False)
-german = do_all([ds_path('dev/de.json')], split=params.input_length, create_y=True, shuffle=False)
-french = do_all([ds_path('dev/fr.json')], split=params.input_length, create_y=True, shuffle=False)
-english = do_all([ds_path('dev/en.json')], split=params.input_length, create_y=True, shuffle=False)
+train, val, test = do_all(ds_path('protocols_speeches_clean.json'), create_y=True, shuffle=False)
 
 
 # Always fun with the random seeds ...
@@ -119,20 +115,6 @@ model.load_state_dict(best_state) # type: ignore
 
 res, label_data = evaluate_model(model, val)
 result = clean_eval(res)
-
-res_german, _ = evaluate_model(model, german)
-result_german = clean_eval(res_german, add_key_name='German_')
-
-res_french, _ = evaluate_model(model, french)
-result_french = clean_eval(res_french, add_key_name='French_')
-
-res_english, _ = evaluate_model(model, english)
-result_english = clean_eval(res_english, add_key_name='English_')
-
-print(json.dumps(result_german, indent=4))
-print(json.dumps(result_french, indent=4))
-print(json.dumps(result_english, indent=4))
-
 
 result['model'] = params.mdl
 result['input_length'] = params.input_length

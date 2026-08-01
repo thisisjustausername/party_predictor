@@ -11,13 +11,8 @@ import torch
 # INITIALIZE PARAMETERS
 #########################
 
-# input length for tokenized articles
-input_length = 300
-stride = 50
-
 # model to use
-# mdl = 'bert-tiny'
-mdl = 'bert-base-german-cased'
+mdl = 'modern-german-bert'
 
 # random seed for training
 seed = 42
@@ -29,18 +24,23 @@ learning_rate = 3e-5
 betas=(0.9,0.999)
 epsilon=1e-08
 
-# weights = torch.tensor([0.01] + [5.0, 10.0, 5.0, 3.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0], dtype=torch.float)
-
 
 #########################
 # OTHER PARAMETERS
 #########################
-dataset_base_path = 'data/'
+dataset_base_path = 'datasets/'
 model_base_path = 'models/'
 repo_base_path = '/home/lpwgf/programming/party_predictor/'
 
-ner_labels = ['CDU', 'SPD', 'FDP', 'GRÜNE', 'LINKE', 'AFD']
+ner_labels = ['CDU/CSU', 'SPD', 'BÜNDNIS 90/DIE GRÜNEN', 'Die Linke', 'AfD']
+one_hot_encoded_labels = np.identity(len(ner_labels))
+def label_to_one_hot(label):
+    return one_hot_encoded_labels[ner_labels.index(label)]
 
+def label_to_index(label):
+    return ner_labels.index(label)
+
+party_colors =  ['black', 'red', 'green', 'purple', 'blue']
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 with open(repo_base_path + 'datasets/party_scores.json', 'r') as f:
@@ -50,3 +50,8 @@ party_mean = np.mean(scores)
 party_std = np.std(scores)
 party_scores = dict(zip(list(party_scores.keys()), (scores - party_mean) / party_std))
 del scores, party_mean, party_std
+
+# input length for tokenized articles
+with open(repo_base_path + f'models/{mdl}/config.json', 'r') as f:
+    config = json.load(f)
+input_length = config['max_position_embeddings']

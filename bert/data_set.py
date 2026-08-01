@@ -9,11 +9,11 @@ Create datasets for training, validation and testing.
 
 import json
 import os
-from typing import Annotated
 
 import numpy as np
 from torch.utils.data import DataLoader
 from transformers import BertTokenizer
+from sklearn.model_selection import train_test_split as tts
 
 import bert.parameters as params
 from bert.datatypes import NERDataset
@@ -44,57 +44,81 @@ def ds_path(subpath: str) -> str:
     Returns:
         str: the full path to the dataset file
     '''
-    return os.path.join(params.dataset_base_path, subpath)
+    return os.path.join(params.repo_base_path, params.dataset_base_path, subpath)
 
 
-def load_data(paths: list[str], create_y: bool = True) -> tuple[list[list[str]], list[list[str]]] | list[list[str]]:
+def train_test_split(
+        X: list[str],
+        y: list[np.ndarray | float],
+        test_size: float = 0.2,
+        val_size: float | None = 0.1,
+        random_seed: int = 42
+    ) -> tuple:
     '''
-    Load train / val / test data from json files and clean the tokens using the preprocessing module.
-    For test set create_y to False
+    Split the data into training and testing sets, normalize the X-data and fix the y-data
 
     Args:
-        paths (list[str]): list of paths to json files
+        X (list[str]): The X data
+        y (list[np.ndarray | float]): classes
+        test_size (float): The proportion of the data to use for testing
+        val_size (float): The proportion of the data to use for validation
+        random_seed (int): The random seed to use for reproducibility
+    Returns:
+        tuple: A tuple containing the training and testing sets for X and y
+    '''
+    X_mid, X_test, y_mid, y_test = tts(X, y, test_size=test_size, random_state=random_seed)
+    X_train, X_val, y_train, y_val = tts(X_mid, y_mid, test_size=val_size, random_state=random_seed)
+    del X_mid, y_mid
+
+    return X_train, X_val, X_test, y_train, y_val, y_test
+
+
+def load_data(
+        path: str,
+        create_y: bool = True,
+        test_size: float = 0.2,
+        val_size: float | None = 0.1,
+    ) -> tuple[list[list[str]], list[list[str]]] | list[list[str]]:
+    '''
+    Load data from json file
+    For avoiding test and val set create_y to False
+
+    Args:
+        path (str): path to json file
         create_y (bool): whether to create y labels or not
 
     Returns:
         tuple[list[list[str]], list[list[str]]] | list[list[str]]: X and y if create_y is True, else only X
     '''
-    data = []
-    for path in paths:
-        with open(path, 'r') as f:
-            d = json.load(f)
-        data.extend(d)
-    X = [[e['TOKEN'] for e in i] for i in data]
+    with open(path, 'r') as f:
+        data = json.load(f)
+    X = [i['speech'] for i in data]
     y = None
     if create_y:
-        y = [[e['TAG'] for e in i] for i in data]
+        y = [i['class'] for i in data]
         return X, y
     return X
 
 
-def tokenize(tokens, max_length: int = 512):
+def tokenize(tokens: list[str] | str):
     '''
     Tokenize a list of tokens using the BERT tokenizer.
 
     Args:
-        tokens (list[list[str]] | list[str]): A list of tokens or a list of lists of tokens.
-        max_length (int): The maximum length of the tokenized sequence.
+        tokens (list[str] | str): A list of speeches or a speech.
 
     Returns:
         dict: A dictionary containing the tokenized input IDs, attention mask, and alignment data.
     '''
     # if not list of lists (dataset, so set of instances), make it a list of lists as each instance is a list of tokens again
-    if not isinstance(tokens[0], list):
+    if not isinstance(tokens, list):
         tokens = [tokens]
 
     # tokenize the tokens using the BERT tokenizer
     result = tokenizer(tokens, return_tensors='pt', add_special_tokens=True,
-            return_attention_mask=True, is_split_into_words=True,
-            truncation=True, padding=True, max_length=max_length,
-            return_overflowing_tokens=True, stride=2*params.stride) # NOTE: don't label the last stride tokens in the first window and not the first stride tokens in the next window (except for the last window)
+            return_attention_mask=True, is_split_into_words=False, padding=True)
 
-    num_rows = result['input_ids'].shape[0]          # actual output rows, >= len(tokens) if overflow happened
-    sample_map = result['overflow_to_sample_mapping']  # row -> original chunk index
+    num_rows = result['input_ids'].shape[0]
 
     # create alignment data for each instance in the batch
     alignment_data = [[(t, i) for t, i in zip(result.tokens(i), result.word_ids(i))] for i in range(num_rows)]
@@ -105,76 +129,39 @@ def tokenize(tokens, max_length: int = 512):
       'alignment_data': alignment_data,
       'attention_mask': result['attention_mask'],
       'input_ids': result['input_ids'],
-      'sample_map': sample_map
     }
 
 
 
 
-def label(tokens: list[list[str]] | list[str],
-    tags: list[list[str]] | list[str] | None,
-    create_y: Annotated[bool, 'Explicit with tags = None'] = True,
-    split: int = 512) -> list[dict]:
+def label(tokens: list[str] | str,
+    tags: list[str] | None) -> list[dict]:
     '''
     Label the tokens using the provided tags and the BERT tokenizer.
 
     Args:
         tokens (list[list[str]] | list[str]): a train / val / test set of tokens
-        tags (list[list[str]] | list[str] | None): a train / val / test set of tags
-        create_y (bool): whether to create y labels or not
-        split (int): the maximum length of the tokenized sequence
+        tags (list[str] | None): a train / val / test set of class tags
     Returns:
         list[dict]: a list of dictionaries containing the processed tokens, labels, attention mask, and input IDs.
     '''
-    if tags is not None and create_y is False:
-        raise ValueError('create_y must be True if tags are provided')
-    if tags is None and create_y is True:
-        raise ValueError('create_y must be False if tags are not provided')
 
     # tokenize tokens using BERT tokenizer
-    output = tokenize(tokens, max_length=split)
+    output = tokenize(tokens)
     # fetch the important outputs
     result = output['alignment_data']
     attention_mask = output['attention_mask']
     input_ids = output['input_ids']
-    sample_map = output['sample_map']
-    row_tags = [tags[int(sample_map[row_idx])] for row_idx in range(len(result))] if tags is not None else None
     # initialize new data list to store the processed tokens and labels
     new_data = []
 
-    # TODO: optimize
-    # for each instance (sublist) in the batch, process the tokens and labels
-    max_chunk_idx = len(result) - 1
-    iterator = iter(zip(row_tags, result, attention_mask, input_ids, sample_map)) if create_y else iter(zip(result, attention_mask, input_ids, sample_map)) # type: ignore
-    for idx, i in enumerate(iterator):
-        if tags is not None:
-            ner_tags, new_tokens, mask, ids, sample_map = i # type: ignore
-        else:
-            new_tokens, mask, ids, sample_map = i # type: ignore
-            ner_tags = None
+    for index, i in enumerate(zip(result, attention_mask, input_ids)):
+        new_tokens, mask, ids = i
 
         # convert to numpy array for easier processing
         data = np.array(new_tokens)
         ntokens = data[:, 0].tolist()
         word_ids = data[:, 1].tolist()
-
-        # differentiate between None and subtokens
-        if create_y is True:
-            nids = []
-            for index, i in enumerate(word_ids):
-                if (index < params.stride and idx != 0) or (index >= len(word_ids) - params.stride and idx != max_chunk_idx):
-                    nids.append(-100)
-                    continue
-                if (index == 0 or i is None or word_ids[index-1] != i):
-                    nids.append(i)
-                    continue
-                nids.append(-100)
-            nlabels = [ner_labels_reverse[ner_tags[i]] if (i is not None and i != -100) else -100 for i in nids] # type: ignore
-        else:
-            raise NotImplementedError('overlap not added to avoided create_y')
-            nlabels = [ner_labels_reverse[ner_tags[i]] if i is not None else -100 for i in word_ids]
-            group_list = [i if i is not None else -100 for i in word_ids]
-
 
         # create a dictionary for the processed tokens and labels and append it to the new_data list
         res = {
@@ -182,10 +169,9 @@ def label(tokens: list[list[str]] | list[str],
                 'attention_mask': mask,
                 'input_ids': ids,
                 'word_ids': word_ids,
-                'sample_map': int(sample_map)
             }
-        if create_y is True:
-            res['new_labels'] = nlabels
+        if tags is not None:
+            res['class'] = tags[index]
 
         new_data.append(res)
 
@@ -193,43 +179,50 @@ def label(tokens: list[list[str]] | list[str],
     return new_data
 
 
-def do_all_labeling(tokens, tags: list | None, create_y: Annotated[bool, 'Explicit with tags = None'] = True, split: int = 512) -> list[dict]:
+def do_all_labeling(tokens, tags: list | None) -> list[dict]:
     '''
     Label the tokens using the provided tags and the BERT tokenizer.
 
     Args:
         tokens (list[list[str]] | list[str]): a train / val / test set of tokens
-        tags (list[list[str]] | list[str]): a train / val / test set of tags
-        create_y (bool): whether to create y labels or not
-        split (int): the maximum length of the tokenized sequence
+        tags (list[str] | None): a train / val / test set of class tags
     Returns:
         list[dict]: a list of dictionaries containing the processed tokens, labels, attention mask, and input IDs.
     '''
-    l = label(tokens, tags, create_y=create_y, split=split)
-    res =  [{'tokens': i['new_tokens'], 'attention_mask': i['attention_mask'], 'input_ids': i['input_ids'], 'word_ids': i['word_ids'], 'sample_map': i['sample_map']} | ({'labels': i['new_labels']} if create_y else {}) for i in l]
+    l = label(tokens, tags)
+    res =  [{'tokens': i['new_tokens'], 'attention_mask': i['attention_mask'], 'input_ids': i['input_ids'], 'word_ids': i['word_ids']} | ({'class': i['class']} if tags is not None else {}) for i in l]
     return res
 
 
-def do_all(paths: list[str], split: int = 512, create_y: bool = True, shuffle: bool = False, add_tokens: bool = False):
-    res = load_data(paths, create_y=create_y)
+def do_all(path: str, create_y: bool = True, shuffle: bool = False):
+    res = load_data(path, create_y=create_y)
     if create_y:
-        X, y = res
-    else:
-        X = res
-        y = None
-    res = do_all_labeling(X, y, create_y=create_y, split=split)
-    if add_tokens:
-        tokens = [i['tokens'] for i in res]
+        X_all, y_all = res
+        X_train, X_val, X_test, y_train, y_val, y_test = train_test_split(X=X_all, y=y_all)
+        data = ({'input': (X_train, y_train)},
+                {'input': (X_val, y_val)},
+                {'input': (X_test, y_test)})
 
-    items_list = ['attention_mask', 'input_ids', 'word_ids', 'sample_map']
-    res = NERDataset([{k: v for k, v in i.items() if k in items_list} for i in res], [i['labels'] for i in res] if create_y else None, tokens=tokens if add_tokens else None)
-    dl = DataLoader(res, batch_size=params.batch_size, shuffle=shuffle)
-    return dl
+    else:
+        X_all = res
+        y_all = None
+        data = ({'input': (X_all, y_all)})
+    for index, i in enumerate(data):
+        res = do_all_labeling(*i['input'])
+
+        items_list = ['attention_mask', 'input_ids', 'word_ids']
+        res = NERDataset([{k: v for k, v in i.items() if k in items_list} for i in res], [i['class'] for i in res] if create_y else None)
+        dl = DataLoader(res, batch_size=params.batch_size, shuffle=shuffle)
+
+        data[index]['dataloader'] = dl
+
+    if len(data) == 1:
+        return data['dataloader']
+    return tuple([i['dataloader'] for i in data])
 
 
 if __name__ == '__main__':
-    val_paths = [ds_path(f'dev/{lang}.json') for lang in val_langs]
+    path = ds_path('protocols_speeches_clean.json')
+    data = do_all(path, create_y=True, shuffle=False)
 
-    val_dl = do_all(val_paths, split=512, create_y=True, shuffle=False)
-
-    print('Validation DataLoader:', val_dl)
+    print('Validation DataLoader:', data)
