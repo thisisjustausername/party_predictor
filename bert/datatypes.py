@@ -11,12 +11,12 @@ from torch.nn import Linear, Module
 from torch.utils.data import Dataset
 from torchcrf import CRF
 
-from bert.parameters import *
+from bert import parameters as params
 
-with open(os.path.join(model_base_path, mdl, 'config.json'), 'r') as f:
+with open(os.path.join(params.model_base_path, params.mdl, 'config.json'), 'r') as f:
     config = json.load(f)
 hidden_size = config['hidden_size']
-num_tags = len(ner_labels)
+num_tags = len(params.ner_labels)
 
 class NERDataset(Dataset):
 
@@ -26,7 +26,7 @@ class NERDataset(Dataset):
         self.tokens = tokens
 
     def __getitem__(self, index):
-        label = torch.tensor(self.labels[index], dtype=torch.long, device=device) if self.labels is not None else None
+        label = torch.tensor(self.labels[index], dtype=torch.long, device=params.device) if self.labels is not None else None
         item = {'attention_mask': self.encodings[index]['attention_mask'].clone().detach(),
                 'input_ids': self.encodings[index]['input_ids'].clone().detach()}
         if self.labels is None and self.tokens is not None:
@@ -45,7 +45,7 @@ class BertNerModel(Module):
 
     def __init__(self):
         super().__init__()
-        self.bert = transformers.BertModel.from_pretrained(os.path.join(model_base_path, mdl))
+        self.bert = transformers.BertModel.from_pretrained(os.path.join(params.model_base_path, params.mdl))
         # self.dropout = torch.nn.Dropout(0.1)
         self.linear = Linear(hidden_size, num_tags)
         self.crf = CRF(num_tags=num_tags, batch_first=True)
