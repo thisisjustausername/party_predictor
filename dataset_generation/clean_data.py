@@ -7,7 +7,7 @@ from bert import parameters as params
 
 ### INITIALIZE PARAMETERS
 write: bool = False
-min_speech_length: int = 300 # avoid "Nachfragen"
+min_speech_length: int = 300 # avoid 'Nachfragen'
 ### END INITIALIZE PARAMETERS
 
 
@@ -30,7 +30,7 @@ clean_data = [i for i in clean_data if i['speech'] != '']
 # for i in clean_data:
 #     i['speech'] = i['speech'].split('\nVielen Dank.\n')[0]
 
-print(len(clean_data))
+print(f' Number of speeches: {len(clean_data)}')
 
 tokenizer = BertTokenizer.from_pretrained(os.path.join(params.model_base_path, params.mdl), do_lower_case=False)
 
@@ -47,7 +47,8 @@ for index, i in enumerate(clean_data):
     i['speech_length'] = len(result['input_ids'][index])
 
 clean_data = [i for i in clean_data if i['speech_length'] >= min_speech_length]
-
+for i in clean_data:
+    i['class'] = params.label_to_one_hot(i['talker']['party']).tolist()
 
 with open('datasets/protocols_speeches_clean.json', 'w') as f:
     json.dump(clean_data, f, indent=4)
