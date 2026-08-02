@@ -62,6 +62,16 @@ model = model.to(params.device)
 # Training / Fine-tuning the model  #
 #####################################
 
+freeze_layers = 6
+
+for name, p in model.named_parameters():
+    if 'encoder.layer' in name:
+        layer_num = int(name.split('encoder.layer.')[1].split('.')[0])
+        if layer_num < freeze_layers:
+            p.requires_grad = False
+    elif 'embeddings' in name:
+        p.requires_grad = False
+
 no_decay = ['bias', 'LayerNorm.weight']
 optimizer_grouped_parameters = [
     {'params': [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)],
@@ -80,24 +90,30 @@ scheduler = lin_sched(
 best_f1 = -1
 best_state = None
 
+accum_steps = 4
+if params.batch_size % accum_steps != 0:
+    raise ValueError(f'Batch size {params.batch_size} is not divisible by accumulation steps {accum_steps}.')
+
+
 for n in range(params.num_epochs):
     model.train()
     it = iter(train)  # Create the iterator from the training dataset
     epoch_loss, steps = 0, 0      # To keep track of the current epoch's loss
 
-    for X, y in it:              # Obtain a tensor X = batch of X-values, y accordingly
+    for index, (X, y) in enumerate(it):              # Obtain a tensor X = batch of X-values, y accordingly
         X = {k: v.to(params.device) for k, v in X.items()}
         y = y.to(params.device)
-        y_pred = model(X)  # Have our model with current weights make a prediction
-        # outputs should be of shape [batch, sequence, logits] (where sequence values indicate the token indices within one sequence)
-        loss = loss_fn(y_pred, y) # ... sucht that the loss function can take care of the rest for us!
-        optimizer.zero_grad()
+        with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+            y_pred = model(X)
+            loss = loss_fn(y_pred, y) / accum_steps
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        optimizer.step()
-        scheduler.step()
+        if (index + 1) % accum_steps == 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
+            scheduler.step()
+            optimizer.zero_grad()
 
-        epoch_loss += loss.item()
+        epoch_loss += loss.item() * accum_steps
 
     model.eval()
     res, _ = evaluate_model(model, val)
