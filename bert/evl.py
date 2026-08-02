@@ -24,7 +24,7 @@ def evaluate_model(model, data_loader):
             y_preds = torch.argmax(y_probs, dim=-1)
 
             predictions.extend(y_preds.cpu().numpy().tolist())
-            labels.extend(y.numpy().tolist())
+            labels.extend(y.cpu().numpy().tolist())
 
     results = {
             'overall_f1': f1_metric.compute(references=labels, predictions=predictions, average='macro')['f1'], # type: ignore
