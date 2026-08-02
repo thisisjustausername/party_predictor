@@ -6,7 +6,7 @@ import torch
 
 import bert.parameters as params
 from bert.data_set import do_all, ds_path
-from bert.datatypes import BertNerModel
+from bert.datatypes import BertClsModel
 
 model_name = 'model_99'
 
@@ -33,7 +33,7 @@ with open(os.path.join(params.repo_base_path, f'finetuning/stats/{model_name}.js
     stats = json.load(f)
 batch_size = stats['batch_size']
 
-model = BertNerModel()
+model = BertClsModel()
 model.load_state_dict(torch.load(os.path.join(params.repo_base_path, f'finetuning/ft/{model_name}')))
 model = model.to(params.device)
 labels = []

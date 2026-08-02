@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from bert.data_set import do_all, ds_path
-from bert.datatypes import BertNerModel
+from bert.datatypes import BertClsModel
 from bert.evl import evaluate_model
 from bert.parameters import *
 
@@ -31,7 +31,7 @@ with open(os.path.join(repo_base_path, f'finetuning/stats/{model_name}.json'), '
     stats = json.load(f)
 batch_size = stats['batch_size']
 
-model = BertNerModel()
+model = BertClsModel()
 model.load_state_dict(torch.load(os.path.join(repo_base_path, f'finetuning/ft/{model_name}')))
 model = model.to(device)
 
