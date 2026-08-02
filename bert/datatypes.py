@@ -45,13 +45,10 @@ class BertClsModel(Module):
 
     def __init__(self):
         super().__init__()
-        self.bert = transformers.BertForSequenceClassification.from_pretrained(os.path.join(params.model_base_path, params.mdl), num_labels=num_tags)
+        self.bert = transformers.AutoModelForSequenceClassification.from_pretrained(os.path.join(params.model_base_path, params.mdl), num_labels=num_tags)
         # self.dropout = torch.nn.Dropout(0.1)
-        self.linear = Linear(hidden_size, num_tags)
         self.crf = CRF(num_tags=num_tags, batch_first=True)
 
     def forward(self, inputs):
-        outputs = self.bert(**inputs, output_hidden_states=True)
-        last_hidden_state = outputs.last_hidden_state
-        logits = self.linear(last_hidden_state)
-        return logits
+        outputs = self.bert(**inputs) # , output_hidden_states=True)
+        return outputs.logits
