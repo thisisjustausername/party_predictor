@@ -1,5 +1,5 @@
 '''
-Datatypes for the NER task.
+Datatypes for the Classification task.
 '''
 
 import json
@@ -18,7 +18,7 @@ with open(os.path.join(params.model_base_path, params.mdl, 'config.json'), 'r') 
 hidden_size = config['hidden_size']
 num_tags = len(params.ner_labels)
 
-class NERDataset(Dataset):
+class ClsDataset(Dataset):
 
     def __init__(self, encodings, labels: list | None, tokens: list | None=None) -> None:
         self.encodings = encodings
@@ -41,11 +41,11 @@ class NERDataset(Dataset):
         return len(self.encodings)
 
 
-class BertNerModel(Module):
+class BertClsModel(Module):
 
     def __init__(self):
         super().__init__()
-        self.bert = transformers.BertModel.from_pretrained(os.path.join(params.model_base_path, params.mdl))
+        self.bert = transformers.BertForSequenceClassification.from_pretrained(os.path.join(params.model_base_path, params.mdl), num_labels=num_tags)
         # self.dropout = torch.nn.Dropout(0.1)
         self.linear = Linear(hidden_size, num_tags)
         self.crf = CRF(num_tags=num_tags, batch_first=True)

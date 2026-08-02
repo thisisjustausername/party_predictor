@@ -11,30 +11,17 @@ import json
 import os
 
 import numpy as np
-from torch.utils.data import DataLoader
-from transformers import BertTokenizer
 from sklearn.model_selection import train_test_split as tts
+from torch.utils.data import DataLoader
+from transformers import AutoTokenizer
 
 import bert.parameters as params
-from bert.datatypes import NERDataset
-
-#########################
-# INITIALIZE LOCAL PARAMETERS
-#########################
-
-train_langs = ['de', 'fr']
-val_langs = ['de', 'fr', 'en']
-test_langs = ['de', 'fr', 'en']
-lang: int = 0
+from bert.datatypes import ClsDataset
 
 # set up tokenizer
-tokenizer = BertTokenizer.from_pretrained(os.path.join(params.model_base_path, params.mdl), do_lower_case=True)
-print('Is fast encoder (should be True):', tokenizer.is_fast)
+tokenizer = AutoTokenizer.from_pretrained(os.path.join(params.model_base_path, params.mdl), do_lower_case=True)
+print('Is fast encoder (should be True):', tokenizer.is_fast) # type: ignore
 
-
-#########################
-# CREATE FUNCTIONS
-#########################
 
 def ds_path(subpath: str) -> str:
     '''
@@ -211,7 +198,7 @@ def do_all(path: str, create_y: bool = True, shuffle: bool = False):
         res = do_all_labeling(*i['input'])
 
         items_list = ['attention_mask', 'input_ids', 'word_ids']
-        res = NERDataset([{k: v for k, v in i.items() if k in items_list} for i in res], [i['class'] for i in res] if create_y else None)
+        res = ClsDataset([{k: v for k, v in i.items() if k in items_list} for i in res], [i['class'] for i in res] if create_y else None)
         dl = DataLoader(res, batch_size=params.batch_size, shuffle=shuffle)
 
         data[index]['dataloader'] = dl

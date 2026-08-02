@@ -1,5 +1,5 @@
 '''
-Finetuning pipeline for BERT model on NER task.
+Finetuning pipeline for BERT model on Classification task.
 '''
 
 import json
@@ -14,7 +14,7 @@ from transformers import get_linear_schedule_with_warmup as lin_sched
 
 import bert.parameters as params
 from bert.data_set import do_all, ds_path
-from bert.datatypes import BertNerModel
+from bert.datatypes import BertClsModel
 from bert.evl import evaluate_model
 
 random_state = np.random.RandomState(params.seed)
@@ -55,7 +55,7 @@ os.environ['PYTHONHASHSEED'] = str(params.seed)
 # Instantiate the model             #
 #####################################
 
-model = BertNerModel()
+model = BertClsModel()
 model = model.to(params.device)
 
 #####################################

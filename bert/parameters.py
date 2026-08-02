@@ -1,5 +1,5 @@
 '''
-Set up parameters for finetuning the BERT model on the NER task and evaluating it.
+Set up parameters for finetuning the BERT model on the Classification task and evaluating it.
 '''
 
 import json
