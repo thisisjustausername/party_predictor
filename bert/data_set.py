@@ -63,8 +63,6 @@ def train_test_split(
 def load_data(
         path: str,
         create_y: bool = True,
-        test_size: float = 0.2,
-        val_size: float | None = 0.1,
     ) -> tuple[list[list[str]], list[list[str]]] | list[list[str]]:
     '''
     Load data from json file
@@ -87,12 +85,13 @@ def load_data(
     return X
 
 
-def tokenize(tokens: list[str] | str):
+def tokenize(tokens: list[str] | str, cutoff: int | None = 2500):
     '''
     Tokenize a list of tokens using the BERT tokenizer.
 
     Args:
         tokens (list[str] | str): A list of speeches or a speech.
+        cutoff (int): The maximum number of tokens to keep. Tokens beyond this limit will be truncated.
 
     Returns:
         dict: A dictionary containing the tokenized input IDs, attention mask, and alignment data.
@@ -101,19 +100,25 @@ def tokenize(tokens: list[str] | str):
     if not isinstance(tokens, list):
         tokens = [tokens]
 
+    prms = {
+        'padding': 'max_length' if cutoff is not None else True,
+        }
+    if cutoff is not None:
+        prms['truncation'] = True
+        prms['max_length'] = cutoff
+
     # tokenize the tokens using the BERT tokenizer
-    result = tokenizer(tokens, return_tensors='pt', add_special_tokens=True,
-            return_attention_mask=True, is_split_into_words=False, padding=True)
-
-    num_rows = result['input_ids'].shape[0]
-
-    # create alignment data for each instance in the batch
-    alignment_data = [[(t, i) for t, i in zip(result.tokens(i), result.word_ids(i))] for i in range(num_rows)]
-
+    result = tokenizer(
+        tokens,
+        return_tensors='pt',
+        add_special_tokens=True,
+        return_attention_mask=True,
+        is_split_into_words=False,
+        **prms
+    ) # type: ignore
 
     # return the tokenized input IDs, attention mask, and alignment data
     return {
-      'alignment_data': alignment_data,
       'attention_mask': result['attention_mask'],
       'input_ids': result['input_ids'],
     }
@@ -134,28 +139,20 @@ def label(tokens: list[str] | str,
     '''
 
     # tokenize tokens using BERT tokenizer
-    output = tokenize(tokens)
+    output = tokenize(tokens, cutoff=params.cutoff)
     # fetch the important outputs
-    result = output['alignment_data']
     attention_mask = output['attention_mask']
     input_ids = output['input_ids']
     # initialize new data list to store the processed tokens and labels
     new_data = []
 
-    for index, i in enumerate(zip(result, attention_mask, input_ids)):
-        new_tokens, mask, ids = i
-
-        # convert to numpy array for easier processing
-        data = np.array(new_tokens)
-        ntokens = data[:, 0].tolist()
-        word_ids = data[:, 1].tolist()
+    for index, i in enumerate(zip(attention_mask, input_ids)):
+        mask, ids = i
 
         # create a dictionary for the processed tokens and labels and append it to the new_data list
         res = {
-                'new_tokens': ntokens,
                 'attention_mask': mask,
                 'input_ids': ids,
-                'word_ids': word_ids,
             }
         if tags is not None:
             res['class'] = tags[index]
@@ -166,26 +163,11 @@ def label(tokens: list[str] | str,
     return new_data
 
 
-def do_all_labeling(tokens, tags: list | None) -> list[dict]:
-    '''
-    Label the tokens using the provided tags and the BERT tokenizer.
-
-    Args:
-        tokens (list[list[str]] | list[str]): a train / val / test set of tokens
-        tags (list[str] | None): a train / val / test set of class tags
-    Returns:
-        list[dict]: a list of dictionaries containing the processed tokens, labels, attention mask, and input IDs.
-    '''
-    l = label(tokens, tags)
-    res =  [{'tokens': i['new_tokens'], 'attention_mask': i['attention_mask'], 'input_ids': i['input_ids'], 'word_ids': i['word_ids']} | ({'class': i['class']} if tags is not None else {}) for i in l]
-    return res
-
-
 def do_all(path: str, create_y: bool = True, shuffle: bool = False):
     res = load_data(path, create_y=create_y)
     if create_y:
         X_all, y_all = res
-        X_train, X_val, X_test, y_train, y_val, y_test = train_test_split(X=X_all, y=y_all)
+        X_train, X_val, X_test, y_train, y_val, y_test = train_test_split(X=X_all, y=y_all) # type: ignore
         data = ({'input': (X_train, y_train)},
                 {'input': (X_val, y_val)},
                 {'input': (X_test, y_test)})
@@ -193,18 +175,18 @@ def do_all(path: str, create_y: bool = True, shuffle: bool = False):
     else:
         X_all = res
         y_all = None
-        data = ({'input': (X_all, y_all)})
+        data = ({'input': (X_all, y_all)}, )
     for index, i in enumerate(data):
-        res = do_all_labeling(*i['input'])
+        res = label(*i['input']) # type: ignore
 
-        items_list = ['attention_mask', 'input_ids', 'word_ids']
+        items_list = ['attention_mask', 'input_ids']
         res = ClsDataset([{k: v for k, v in i.items() if k in items_list} for i in res], [i['class'] for i in res] if create_y else None)
         dl = DataLoader(res, batch_size=params.batch_size, shuffle=shuffle)
 
-        data[index]['dataloader'] = dl
+        data[index]['dataloader'] = dl # type: ignore
 
     if len(data) == 1:
-        return data['dataloader']
+        return data['dataloader'] # type: ignore
     return tuple([i['dataloader'] for i in data])
 
 

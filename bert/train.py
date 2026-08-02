@@ -70,15 +70,12 @@ optimizer_grouped_parameters = [
      'weight_decay': 0.0},
 ]
 optimizer = optim.AdamW(optimizer_grouped_parameters, lr=params.learning_rate, betas=params.betas, eps=params.epsilon)
-loss_fn = torch.nn.CrossEntropyLoss(ignore_index=-100)
+loss_fn = torch.nn.CrossEntropyLoss() # ignore_index=-100)
 scheduler = lin_sched(
     optimizer=optimizer,
     num_warmup_steps=int(0.06*len(train)*params.num_epochs),
     num_training_steps=int(len(train)*params.num_epochs)
 )
-
-epos = []
-plt.plot()
 
 best_f1 = -1
 best_state = None
@@ -93,7 +90,6 @@ for n in range(params.num_epochs):
         y = y.to(params.device)
         y_pred = model(X)  # Have our model with current weights make a prediction
         # outputs should be of shape [batch, sequence, logits] (where sequence values indicate the token indices within one sequence)
-        y_pred = torch.permute(y_pred, (0, 2, 1))  # swap the sequence and the logit dimensions
         loss = loss_fn(y_pred, y) # ... sucht that the loss function can take care of the rest for us!
         optimizer.zero_grad()
         loss.backward()

@@ -11,6 +11,8 @@ import torch
 # INITIALIZE PARAMETERS
 #########################
 
+cutoff = 2500
+
 # model to use
 mdl = 'modern-german-bert'
 
