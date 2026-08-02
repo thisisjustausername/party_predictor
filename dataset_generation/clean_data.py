@@ -48,7 +48,7 @@ for index, i in enumerate(clean_data):
 
 clean_data = [i for i in clean_data if i['speech_length'] >= min_speech_length]
 for i in clean_data:
-    i['class'] = params.label_to_one_hot(i['talker']['party']).tolist()
+    i['class'] = params.label_to_index(i['talker']['party'])
 
 with open('datasets/protocols_speeches_clean.json', 'w') as f:
     json.dump(clean_data, f, indent=4)
