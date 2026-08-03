@@ -38,10 +38,6 @@ def clean_eval(eval_res, add_key_name: str | None = None) -> dict:
 train, val, test = do_all(ds_path('protocols_speeches_clean.json'), create_y=True, shuffle=False)
 
 
-# Always fun with the random seeds ...
-# We need to set them such that our results will be replicable.
-# (Hint: for an experiment later, you can change the random seed here and check what happens.
-# But for now, let's keep the answer to all questions of the universe, 42.)
 torch.manual_seed(params.seed)
 torch.cuda.manual_seed_all(params.seed)
 torch.backends.cudnn.deterministic = True
@@ -83,19 +79,21 @@ optimizer_grouped_parameters = [
 ]
 optimizer = optim.AdamW(optimizer_grouped_parameters, lr=params.learning_rate, betas=params.betas, eps=params.epsilon)
 loss_fn = torch.nn.CrossEntropyLoss() # ignore_index=-100)
+
+steps_per_epoch = len(train) // params.accum_steps
+total_steps = steps_per_epoch * params.num_epochs
 scheduler = lin_sched(
     optimizer=optimizer,
-    num_warmup_steps=int(0.06*len(train)*params.num_epochs),
-    num_training_steps=int(len(train)*params.num_epochs)
+    num_warmup_steps=int(0.06 * total_steps),
+    num_training_steps=total_steps
 )
 
 best_f1 = -1
 best_state = None
 
-accum_steps = 4
-if params.batch_size % accum_steps != 0:
-    raise ValueError(f'Batch size {params.batch_size} is not divisible by accumulation steps {accum_steps}.')
-
+# compute the overhang after each epoch that has not been accumulated
+overhang = len(train) % params.accum_steps
+first_overhang = (len(train) // params.accum_steps) * params.accum_steps
 
 for n in range(params.num_epochs):
     model.train()
@@ -107,15 +105,15 @@ for n in range(params.num_epochs):
         y = y.to(params.device)
         with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
             y_pred = model(X)
-            loss = loss_fn(y_pred, y) / accum_steps
+            loss = loss_fn(y_pred, y) / (params.accum_steps if index < first_overhang else overhang)
         loss.backward()
-        if (index + 1) % accum_steps == 0:
+        if (index < first_overhang and (index + 1) % params.accum_steps == 0) or (index >= first_overhang and (index + 1 - first_overhang) % overhang == 0):
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad()
 
-        epoch_loss += loss.item() * accum_steps
+        epoch_loss += loss.item() * (params.accum_steps if index < first_overhang else overhang)
 
     model.eval()
     res, _ = evaluate_model(model, val)
