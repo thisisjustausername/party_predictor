@@ -20,8 +20,8 @@ mdl = 'modern-german-bert'
 seed = 42
 
 # training hyperparameters
-num_epochs = 30
-batch_size = 8
+num_epochs = 16
+batch_size = 4
 learning_rate = 3e-5
 betas=(0.9,0.999)
 epsilon=1e-08
