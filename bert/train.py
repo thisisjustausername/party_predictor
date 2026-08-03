@@ -8,7 +8,6 @@ import random
 
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
 from torch import optim
 from transformers import get_linear_schedule_with_warmup as lin_sched
 
@@ -61,6 +60,9 @@ model = model.to(params.device)
 #####################################
 # Training / Fine-tuning the model  #
 #####################################
+
+files = [int(i[6:].split('.')[0]) for i in os.listdir(os.path.join(params.repo_base_path, 'finetuned_model_stats/'))] + [0]
+new_name = max(files) + 1
 
 freeze_layers = 6
 
@@ -121,6 +123,7 @@ for n in range(params.num_epochs):
     if val_f1 > best_f1:
         best_f1 = val_f1
         best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+        torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}'))
     print(f'Epoch {n + 1}: {epoch_loss}')
 
 model.load_state_dict(best_state) # type: ignore
@@ -144,9 +147,7 @@ result['scheduler'] = scheduler.__class__.__name__
 result['model_layers'] = str(model)
 
 
-files = [int(i[6:].split('.')[0]) for i in os.listdir(os.path.join(params.repo_base_path, 'finetuning/stats/'))] + [0]
-new_name = max(files) + 1
-torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuning/ft/model_{new_name}'))
-with open(os.path.join(params.repo_base_path, f'finetuning/stats/model_{new_name}.json'), 'w') as f:
+torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}'))
+with open(os.path.join(params.repo_base_path, f'finetuned_model_stats/model_{new_name}.json'), 'w') as f:
     json.dump(result, f, indent=4)
 print(json.dumps(result, indent=4))
