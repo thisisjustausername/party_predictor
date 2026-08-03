@@ -56,7 +56,7 @@ def train_test_split(
     # split into test and rest
     X_mid, X_test, y_mid, y_test = tts(X, y, test_size=test_size, random_state=random_seed)
     # split rest into train and val
-    if val_size is None:
+    if val_size is not None:
         X_train, X_val, y_train, y_val = tts(X_mid, y_mid, test_size=val_size, random_state=random_seed)
     else:
         X_train, y_train = X_mid, y_mid
