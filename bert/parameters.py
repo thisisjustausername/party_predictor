@@ -21,12 +21,13 @@ seed = 42
 
 # training hyperparameters
 num_epochs = 16
-batch_size = 4
+batch_size = 2
+accum_steps = 8
 learning_rate = 3e-5
 betas=(0.9,0.999)
 epsilon=1e-08
 
-
+print(f'Effective batch size: {batch_size * accum_steps}')
 #########################
 # OTHER PARAMETERS
 #########################
