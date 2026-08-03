@@ -1,3 +1,6 @@
+'''
+Fetch plenary protocols form the Bundestag and extract speeches from them. Save them then to a JSON file.
+'''
 # TODO: remove words containing ...
 
 import json
@@ -13,6 +16,16 @@ API_KEY = os.environ.get('API_KEY')
 
 
 def fetch_url(ressource: str, ident: str | None = None) -> Response | None:
+    '''
+    Fetches a URL from the Bundestag API
+
+    Args:
+        ressource (str): The API resource to fetch
+        ident (str | None): The identifier for the specific resource
+
+    Returns:
+        Response | None: The API response or None if the request failed
+    '''
     url = f'https://search.dip.bundestag.de/api/v1/{ressource}' + (f'/{ident}' if ident else '')
     headers = {
         'Authorization': f'ApiKey {API_KEY}',
@@ -24,22 +37,6 @@ def fetch_url(ressource: str, ident: str | None = None) -> Response | None:
     else:
         response.raise_for_status()
 
-
-def find_protocols(res: Response) -> list:
-    xml_docs = []
-    for i in res['documents']:
-        if i['dokumentart'] != 'Plenarprotokoll' or 'xml_url' not in i['fundstelle']:
-            continue
-        xml_docs.append(i['fundstelle']['xml_url'])
-
-    sps = []
-    for xml_doc in xml_docs:
-        result = requests.get(xml_doc)
-        xml_data = xmltodict.parse(result.text)
-        speaks = clean_protocol(xml_data)
-        speeches = speech_extraction_aggressive(speaks)
-        sps.extend(speeches)
-    return sps
 
 def clean_protocol(protocol: dict) -> list:
     '''
@@ -87,11 +84,38 @@ def speech_extraction_aggressive(speaks: list) -> list[dict[str, dict[str, str |
     return speeches # type: ignore
 
 
+def find_protocols(res: Response) -> list:
+    '''
+    Finds some plenary protocols in the Bundestag API response and clean them to extract the speeches
+
+    Args:
+        res (Response): response from Bundestag API
+    Returns:
+        list: list of plenary speeches
+    '''
+    xml_docs = []
+    for i in res['documents']:
+        if i['dokumentart'] != 'Plenarprotokoll' or 'xml_url' not in i['fundstelle']:
+            continue
+        xml_docs.append(i['fundstelle']['xml_url'])
+
+    sps = []
+    for xml_doc in xml_docs:
+        result = requests.get(xml_doc)
+        xml_data = xmltodict.parse(result.text)
+        speaks = clean_protocol(xml_data)
+        speeches = speech_extraction_aggressive(speaks)
+        sps.extend(speeches)
+    return sps
+
+
 if __name__ == '__main__':
     ressource = 'plenarprotokoll'
     # ident = '325539'
     ident = None
     res = fetch_url(ressource, ident)
+    if res is None:
+        raise ValueError('No response from API')
     result = find_protocols(res)
     print(len(result))
 
