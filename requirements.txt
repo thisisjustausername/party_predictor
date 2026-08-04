@@ -1,6 +1,5 @@
 requests
 torch
-pytorch-crf
 transformers
 huggingface_hub
 numpy
@@ -12,3 +11,4 @@ dotenv
 xmltodict
 matplotlib
 seaborn
+tqdm
