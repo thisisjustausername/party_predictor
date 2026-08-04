@@ -1,3 +1,7 @@
+'''
+Investigate the data to find distributions and more.
+Can be used as ZED-Notebook.
+'''
 # %% Imports
 import json
 
