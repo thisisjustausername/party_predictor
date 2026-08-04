@@ -35,7 +35,7 @@ echo "API_KEY=<Input your API Key here>" >> .env
 ```bash
 # THIS FILE DOESN'T EXIST. Simply a placeholder for files you want to run.
 # Check for correct file path
-[[ "$(basename "$PWD")" == "party_predictor" ]] || {echo 'Please run this file from the root directory of the repository.'; exit 1;}
+[[ "$(basename "$PWD")" == "party_predictor" ]] || {echo 'Please run this file from the root directory of the repository.';}
 
 # Run file
 python3 -m bert.test_python_file
@@ -56,6 +56,7 @@ python3 -m dataset_generation.investigate_data
 ```
 
 2. Train the model<br/>
+If you want you can adjust the parameters for learning in the file `bert/parameters.py`.
 ```bash
 # Create directories for model stats and finetuned models
 mkdir finetuned_model_stats
@@ -64,6 +65,10 @@ mkdir finetuned_models
 # Train model
 python3 -m bert.train
 ```
+
+## Inference
+
+[TODO: finish]: #
 
 ## Explain classifications
 
