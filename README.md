@@ -65,6 +65,8 @@ mkdir finetuned_models
 # Train model
 python3 -m bert.train
 ```
+### Factors
+Training takes around 13 hours and consumes aroung 4 kWh for the mentioned hardware.
 
 ## Inference
 
