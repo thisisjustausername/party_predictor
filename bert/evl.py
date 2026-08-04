@@ -34,3 +34,18 @@ def evaluate_model(model, data_loader):
         }
 
     return results, {'labels': labels, 'predictions': predictions}
+
+
+def clean_eval(eval_res, add_key_name: str | None = None) -> dict:
+    '''
+    Clean the evaluation results by converting all values to float.
+
+    Args:
+        eval_res (dict): The evaluation results to clean.
+
+    Returns:
+        dict: The cleaned evaluation results.
+    '''
+    if add_key_name is None:
+        add_key_name = ''
+    return {add_key_name + k: {vk: float(vv) for vk, vv in v.items()} if isinstance(v, dict) else float(v) for k, v in eval_res.items()}
