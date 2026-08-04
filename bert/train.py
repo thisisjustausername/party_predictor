@@ -9,30 +9,17 @@ import random
 import numpy as np
 import torch
 from torch import optim
+from tqdm import tqdm
 from transformers import get_linear_schedule_with_warmup as lin_sched
 
 import bert.parameters as params
 from bert.data_set import do_all, ds_path
 from bert.datatypes import BertClsModel
-from bert.evl import evaluate_model
+from bert.evl import clean_eval, evaluate_model
 
 random_state = np.random.RandomState(params.seed)
 
 predictions = []
-
-def clean_eval(eval_res, add_key_name: str | None = None) -> dict:
-    '''
-    Clean the evaluation results by converting all values to float.
-
-    Args:
-        eval_res (dict): The evaluation results to clean.
-
-    Returns:
-        dict: The cleaned evaluation results.
-    '''
-    if add_key_name is None:
-        add_key_name = ''
-    return {add_key_name + k: {vk: float(vv) for vk, vv in v.items()} if isinstance(v, dict) else float(v) for k, v in eval_res.items()}
 
 
 train, val, test = do_all(ds_path('protocols_speeches_clean.json'), create_y=True, shuffle=False)
@@ -100,7 +87,7 @@ for n in range(params.num_epochs):
     it = iter(train)  # Create the iterator from the training dataset
     epoch_loss, steps = 0, 0      # To keep track of the current epoch's loss
 
-    for index, (X, y) in enumerate(it):              # Obtain a tensor X = batch of X-values, y accordingly
+    for index, (X, y) in tqdm(enumerate(it), total=len(train), desc=f'Epoch {n + 1}'):              # Obtain a tensor X = batch of X-values, y accordingly
         X = {k: v.to(params.device) for k, v in X.items()}
         y = y.to(params.device)
         with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
