@@ -1,3 +1,6 @@
+'''
+Clean the dataset of speeches and filter out speeches that are too short or are Nachfragen.
+'''
 import json
 import os
 
