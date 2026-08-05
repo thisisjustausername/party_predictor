@@ -1,4 +1,5 @@
 # Party Predictor
+*A german version can be found under [Deutsches README](README.de.md).*<br/><br/>
 The European wide trend to right-wing politics hasn't missed Germany. But how clearly is this being reflected in the Bundestag?<br/>
 We went out to analyze whether there is a difference in the speeches of different political orientations. These orientations were determined by the CHES score for right to left wing politics though we performed the classification and uniqueness constraint research independent of this score.<br/>
 Additionally, we looked at the causes for classifications in order to pinpoint specific choices of words and phrases that are unique to different political orientations and compared them with similar phrases from historical speeches.
