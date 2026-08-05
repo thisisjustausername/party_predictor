@@ -48,6 +48,9 @@ print()
 print('Number of speeches per party staying vs cut off:')
 display(f'{df[df['speech_length'] <= params.cutoff].speech_length.count()} vs {df[df['speech_length'] > params.cutoff].speech_length.count()}')
 
+print(f'Number of duplicates: {df.duplicated().sum()}')
+
+
 # %% plots
 sns.histplot(data=df, x='speech_length', hue='party', multiple='stack', bins=50, palette=dict(zip(params.ner_labels, params.party_colors)))
 plt.show()
