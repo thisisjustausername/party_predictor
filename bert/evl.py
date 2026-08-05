@@ -11,7 +11,16 @@ precision_metric = evaluate.load('precision')
 recall_metric = evaluate.load('recall')
 accuracy_metric = evaluate.load('accuracy')
 
-def evaluate_model(model, data_loader):
+def evaluate_model(model, data_loader) -> tuple[dict, dict]:
+    '''
+    Evaluate the model on the given data loader.
+
+    Args:
+        model: The model to evaluate.
+        data_loader: The data loader containing the evaluation data.
+    Returns:
+        tuple[dict, dict]: The overall scores and the labels with predictions.
+    '''
     labels = []
     predictions = []
     with torch.no_grad():
