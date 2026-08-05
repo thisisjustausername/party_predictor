@@ -9,7 +9,6 @@ import torch
 import transformers
 from torch.nn import Module
 from torch.utils.data import Dataset
-from torchcrf import CRF
 
 from bert import parameters as params
 
