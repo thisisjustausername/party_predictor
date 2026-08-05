@@ -77,7 +77,7 @@ scheduler = lin_sched(
 
 best_f1 = -1
 best_state = None
-losses = np.array([])
+losses = []
 
 # compute the overhang after each epoch that has not been accumulated
 overhang = len(train) % params.accum_steps
@@ -106,7 +106,7 @@ for n in range(params.num_epochs):
     model.eval()
     res, _ = evaluate_model(model, val)
     val_f1 = res['overall_f1']
-    np.append(losses, epoch_loss)
+    losses.append(epoch_loss)
     if params.early_stopping_patience is not None and np.argmax(losses) < len(losses) - params.early_stopping_patience:
         print(f'Early stopping at epoch {n + 1} due to no improvement in validation loss for {params.early_stopping_patience} epochs.')
         break
