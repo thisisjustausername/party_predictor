@@ -77,6 +77,7 @@ scheduler = lin_sched(
 
 best_f1 = -1
 best_state = None
+losses = np.array([])
 
 # compute the overhang after each epoch that has not been accumulated
 overhang = len(train) % params.accum_steps
@@ -105,33 +106,42 @@ for n in range(params.num_epochs):
     model.eval()
     res, _ = evaluate_model(model, val)
     val_f1 = res['overall_f1']
+    np.append(losses, epoch_loss)
+    if params.early_stopping_patience is not None and np.argmax(losses) < len(losses) - params.early_stopping_patience:
+        print(f'Early stopping at epoch {n + 1} due to no improvement in validation loss for {params.early_stopping_patience} epochs.')
+        break
     if val_f1 > best_f1:
         best_f1 = val_f1
         best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+        print(f'New best model found at epoch {n + 1} with F1 score on val: {best_f1}')
         torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}'))
-    print(f'Epoch {n + 1}: {epoch_loss}')
+    print(f'Epoch {n + 1}:  train loss: {epoch_loss},    val F1: {val_f1}')
 
 model.load_state_dict(best_state) # type: ignore
 
 res, label_data = evaluate_model(model, val)
 result = clean_eval(res)
 
+# Save thethe stats of the training
 result['model'] = params.mdl
 result['input_length'] = params.input_length
 result['num_epochs'] = params.num_epochs
 result['batch_size'] = params.batch_size
+result['accum_steps'] = params.accum_steps
+result['effective_batch_size'] = params.batch_size * params.accum_steps
+result['seed'] = params.seed
+result['freeze_layers'] = freeze_layers
+result['early_stopping_patience'] = params.early_stopping_patience
 result['learning_rate'] = params.learning_rate
 result['betas'] = params.betas
 result['epsilon'] = params.epsilon
 result['subtokens'] = -100
-
-
 result['loss'] = loss_fn.__class__.__name__
 result['optimizer'] = optimizer.__class__.__name__
 result['scheduler'] = scheduler.__class__.__name__
 result['model_layers'] = str(model)
 
-
+# save the model and the stats of the training
 torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}'))
 with open(os.path.join(params.repo_base_path, f'finetuned_model_stats/model_{new_name}.json'), 'w') as f:
     json.dump(result, f, indent=4)
