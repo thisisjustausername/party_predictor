@@ -1,0 +1,21 @@
+{
+    "overall_f1": 0.8680542990354942,
+    "overall_precision": 0.8745674863195987,
+    "overall_recall": 0.8638895173453998,
+    "overall_accuracy": 0.8734835355285961,
+    "model": "modern-german-bert",
+    "input_length": 8192,
+    "num_epochs": 16,
+    "batch_size": 4,
+    "learning_rate": 3e-05,
+    "betas": [
+        0.9,
+        0.999
+    ],
+    "epsilon": 1e-08,
+    "subtokens": -100,
+    "loss": "CrossEntropyLoss",
+    "optimizer": "AdamW",
+    "scheduler": "LambdaLR",
+    "model_layers": "BertClsModel(\n  (bert): ModernBertForSequenceClassification(\n    (model): ModernBertModel(\n      (embeddings): ModernBertEmbeddings(\n        (tok_embeddings): Embedding(31168, 2048, padding_idx=0)\n        (norm): LayerNorm((2048,), eps=1e-05, elementwise_affine=True, bias=False)\n        (drop): Dropout(p=0.0, inplace=False)\n      )\n      (layers): ModuleList(\n        (0): ModernBertEncoderLayer(\n          (attn_norm): Identity()\n          (attn): ModernBertAttention(\n            (Wqkv): Linear(in_features=2048, out_features=6144, bias=False)\n            (Wo): Linear(in_features=2048, out_features=2048, bias=False)\n            (out_drop): Identity()\n          )\n          (mlp_norm): LayerNorm((2048,), eps=1e-05, elementwise_affine=True, bias=False)\n          (mlp): ModernBertMLP(\n            (Wi): Linear(in_features=2048, out_features=6144, bias=False)\n            (act): GELUActivation()\n            (drop): Dropout(p=0.0, inplace=False)\n            (Wo): Linear(in_features=3072, out_features=2048, bias=False)\n          )\n        )\n        (1-27): 27 x ModernBertEncoderLayer(\n          (attn_norm): LayerNorm((2048,), eps=1e-05, elementwise_affine=True, bias=False)\n          (attn): ModernBertAttention(\n            (Wqkv): Linear(in_features=2048, out_features=6144, bias=False)\n            (Wo): Linear(in_features=2048, out_features=2048, bias=False)\n            (out_drop): Identity()\n          )\n          (mlp_norm): LayerNorm((2048,), eps=1e-05, elementwise_affine=True, bias=False)\n          (mlp): ModernBertMLP(\n            (Wi): Linear(in_features=2048, out_features=6144, bias=False)\n            (act): GELUActivation()\n            (drop): Dropout(p=0.0, inplace=False)\n            (Wo): Linear(in_features=3072, out_features=2048, bias=False)\n          )\n        )\n      )\n      (final_norm): LayerNorm((2048,), eps=1e-05, elementwise_affine=True, bias=False)\n      (rotary_emb): ModernBertRotaryEmbedding()\n    )\n    (head): ModernBertPredictionHead(\n      (dense): Linear(in_features=2048, out_features=2048, bias=False)\n      (act): GELUActivation()\n      (norm): LayerNorm((2048,), eps=1e-05, elementwise_affine=True, bias=False)\n    )\n    (drop): Dropout(p=0.0, inplace=False)\n    (classifier): Linear(in_features=2048, out_features=5, bias=True)\n  )\n  (crf): CRF(num_tags=5)\n)"
+}
