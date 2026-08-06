@@ -7,6 +7,7 @@ Create datasets for training, validation and testing.
 
 # TODO: for training no overlap but still render edges unusable because of missing context (avoid óverlaps as they will be duplicates if trained on, maybe it is excluded)
 
+from typing import overload
 import json
 import os
 
@@ -174,14 +175,20 @@ def label(tokens: list[str] | str,
     return new_data
 
 
-def do_all(path: str, create_y: bool = True, shuffle: bool = False) -> DataLoader | tuple[DataLoader, DataLoader, DataLoader]:
+@overload
+def do_all(path: str, create_y: bool = True, shuffle: tuple[bool, bool, bool] = (True, False, False)) -> tuple[DataLoader, DataLoader, DataLoader]: ...
+
+@overload
+def do_all(path: str, create_y: bool = False, shuffle: bool = False) -> DataLoader: ...
+
+def do_all(path: str, create_y: bool = True, shuffle: tuple[bool, bool, bool] | bool = (True, False, False)) -> DataLoader | tuple[DataLoader, DataLoader, DataLoader]:
     '''
     Load data from json file, split into train, val and test sets, tokenize the data and create DataLoader objects for each set.
 
     Args:
         path (str): path to json file
         create_y (bool): whether to create y labels or not
-        shuffle (bool): whether to shuffle the data or not
+        shuffle (tuple[bool, bool, bool]): whether to shuffle the train, val, test split
     Returns:
         DataLoader | tuple[DataLoader, DataLoader, DataLoader]: DataLoader object for the train, val and test sets if create_y is True, else only DataLoader object for the data
     '''
@@ -190,7 +197,7 @@ def do_all(path: str, create_y: bool = True, shuffle: bool = False) -> DataLoade
     # split the data into train, val and test sets if create_y is True
     if create_y:
         X_all, y_all = res
-        X_train, X_val, X_test, y_train, y_val, y_test = train_test_split(X=X_all, y=y_all) # type: ignore
+        X_train, X_val, X_test, y_train, y_val, y_test = train_test_split(X=X_all, y=y_all, random_seed=params.seed) # type: ignore
         # create data for clean enumeration
         data = ({'input': (X_train, y_train)},
                 {'input': (X_val, y_val)},
@@ -201,15 +208,17 @@ def do_all(path: str, create_y: bool = True, shuffle: bool = False) -> DataLoade
         y_all = None
         # create data for clean enumeration
         data = ({'input': (X_all, y_all)}, )
+        if isinstance(shuffle, bool):
+            shuffle = (shuffle, ) # type: ignore
 
     # iterate over the data and create DataLoader objects for each set
-    for index, i in enumerate(data):
+    for index, (i, shfl) in enumerate(zip(data, shuffle)): # type: ignore
         # tokenize the data and create a list of dictionaries containing the processed tokens and labels
         res = label(*i['input']) # type: ignore
 
         # create a ClsDataset object for the processed tokens and labels and create a DataLoader object for the dataset
         res = ClsDataset(res, [i['class'] for i in res] if create_y else None)
-        dl = DataLoader(res, batch_size=params.batch_size, shuffle=shuffle)
+        dl = DataLoader(res, batch_size=params.batch_size, shuffle=shfl)
 
         # store the DataLoader object in the data dictionary
         data[index]['dataloader'] = dl # type: ignore
