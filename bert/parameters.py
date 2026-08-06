@@ -24,7 +24,7 @@ seed = 42
 num_epochs = 64
 
 # early stopping
-early_stopping_patience: int | None = 5
+early_stopping_patience: int | None = None
 
 # NOTE: The effective batch size is the product of the batch size and the number of gradient accumulation steps.
 batch_size = 4
