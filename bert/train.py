@@ -19,12 +19,6 @@ from bert.evl import clean_eval, evaluate_model
 
 random_state = np.random.RandomState(params.seed)
 
-predictions = []
-
-
-train, val, test = do_all(ds_path('protocols_speeches_clean.json'), create_y=True, shuffle=False)
-
-
 torch.manual_seed(params.seed)
 torch.cuda.manual_seed_all(params.seed)
 torch.backends.cudnn.deterministic = True
@@ -32,6 +26,9 @@ torch.backends.cudnn.benchmark = False
 np.random.seed(params.seed)
 random.seed(params.seed)
 os.environ['PYTHONHASHSEED'] = str(params.seed)
+
+predictions = []
+train, val, test = do_all(ds_path('protocols_speeches_clean.json'), create_y=True, shuffle=(True, False, False))
 
 #####################################
 # Instantiate the model             #
@@ -117,10 +114,18 @@ for n in range(params.num_epochs):
         torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}'))
     print(f'Epoch {n + 1}:  train loss: {epoch_loss},    val F1: {val_f1}')
 
+models = {'latest': {k: v.cpu().clone() for k, v in model.state_dict().items()}, 'best_f1_val': best_state}
+with open(os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_states.json'), 'w') as f:
+    json.dump(models, f, indent=4)
+
 model.load_state_dict(best_state) # type: ignore
 
 res, label_data = evaluate_model(model, val)
 result = clean_eval(res)
+
+# evaluate on test set
+res_test, label_data = evaluate_model(model, test)
+test_result = clean_eval(res_test)
 
 # Save thethe stats of the training
 result['model'] = params.mdl
@@ -140,6 +145,10 @@ result['loss'] = loss_fn.__class__.__name__
 result['optimizer'] = optimizer.__class__.__name__
 result['scheduler'] = scheduler.__class__.__name__
 result['model_layers'] = str(model)
+result['overall_test_f1'] = res_test['overall_f1']
+result['overall_test_precision'] = res_test['overall_precision']
+result['overall_test_recall'] = res_test['overall_recall']
+result['overall_test_accuracy'] = res_test['overall_accuracy']
 
 # save the model and the stats of the training
 torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}'))
