@@ -32,7 +32,13 @@ touch .env
 echo "API_KEY=<Input your API Key here>" >> .env
 ```
 
-4. Have fun running the modules. Note, that all the files are written with absolute imports and should be run from the root directory of the repository as modules.<br/>
+4. Download the BERT-model from Huggingface
+   Optionally to guarantee a faster download first run `hf auth login` in your terminal to login to Huggingface.
+   ```bash
+   python3 -m bert.download_bert
+   ```
+
+6. Have fun running the modules. Note, that all the files are written with absolute imports and should be run from the root directory of the repository as modules.<br/>
 ```bash
 # THIS FILE DOESN'T EXIST. Simply a placeholder for files you want to run.
 # Check for correct file path
