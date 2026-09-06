@@ -21,13 +21,13 @@ mdl = 'modern-german-bert'
 seed = 42
 
 # training hyperparameters
-num_epochs = 64
+num_epochs = 16
 
 # early stopping
 early_stopping_patience: int | None = None
 
 # NOTE: The effective batch size is the product of the batch size and the number of gradient accumulation steps.
-batch_size = 4
+batch_size = 1
 accum_steps = 4
 
 learning_rate = 3e-5
@@ -44,7 +44,7 @@ print(f'Effective batch size: {batch_size * accum_steps}')
 # paths to dataset, model and repo
 dataset_base_path = 'datasets/'
 model_base_path = 'models/'
-repo_base_path = '/home/lpwgf/programming/party_predictor/'
+repo_base_path = '/home/leon/programming/party_predictor/'
 
 # parties
 ner_labels = ['CDU/CSU', 'SPD', 'BÜNDNIS 90/DIE GRÜNEN', 'Die Linke', 'AfD']
