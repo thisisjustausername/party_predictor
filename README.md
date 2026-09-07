@@ -10,27 +10,27 @@ Want to use our nice tool but don't want to spend a second enjoying the beautifu
 ## Setup
 No matter what, run this code!<br/>
 1. Clone the repository<br/>
-  ```bash
-  git clone https://github.com/thisisjustausername/party_predictor.git
-  cd party_predictor
-  ```
+   ```bash
+   git clone https://github.com/thisisjustausername/party_predictor.git
+   cd party_predictor
+   ```
 2. Install dependencies<br/>
-  ```bash
-  # Install virtual environment
-  python3 -m venv venv
-  source venv/bin/activate
-  
-  # Install dependencies
-  pip3 install -r requirements.txt
-  ```
+   ```bash
+   # Install virtual environment
+   python3 -m venv venv
+   source venv/bin/activate
+   
+   # Install dependencies
+   pip3 install -r requirements.txt
+   ```
 
 3. Initialize the ENV-variables<br/>
   For that simply research the API-key of the Bundestag API and replace `<Input your API Key here>` in the following code snippet with it.
-  ```bash
-  # Create .env file
-  touch .env
-  echo "API_KEY=<Input your API Key here>" >> .env
-  ```
+   ```bash
+   # Create .env file
+   touch .env
+   echo "API_KEY=<Input your API Key here>" >> .env
+   ```
 
 4. Download the BERT-model from Huggingface.<br/>
    Optionally to guarantee a faster download first run `hf auth login` in your terminal to login to Huggingface.
@@ -39,44 +39,44 @@ No matter what, run this code!<br/>
    ```
 
 5. Have fun running the modules. Note, that all the files are written with absolute imports and should be run from the root directory of the repository as modules.<br/>
-  ```bash
-  # THIS FILE DOESN'T EXIST. Simply a placeholder for files you want to run.
-  # Check for correct file path
-  [[ "$(basename "$PWD")" == "party_predictor" ]] || {echo 'Please run this file from the root directory of the repository.';}
-
-  # Run file
-  python3 -m bert.test_python_file
-  ```
+   ```bash
+   # THIS FILE DOESN'T EXIST. Simply a placeholder for files you want to run.
+   # Check for correct file path
+   [[ "$(basename "$PWD")" == "party_predictor" ]] || {echo 'Please run this file from the root directory of the repository.';}
+ 
+   # Run file
+   python3 -m bert.test_python_file
+   ```
 
 ## Training pipeline
 In case you want to finetune the BERT-model yourself, use this pipeline. We heavily recommend using a NVIDIA GPU with at least 40GB of VRAM and an Ampere architecture.<br/>
 1. Download and preprocess the data<br/>
-  ```bash
-  # Download data
-  python3 -m dataset_generation.fetch_data
-  
-  # Preprocess data
-  python3 -m dataset_generation.clean_data
-  
-  # OPTIONAL: For the interested ones
-  python3 -m dataset_generation.investigate_data
-  ```
+   ```bash
+   # Download data
+   python3 -m dataset_generation.fetch_data
+   
+   # Preprocess data
+   python3 -m dataset_generation.clean_data
+   
+   # OPTIONAL: For the interested ones
+   python3 -m dataset_generation.investigate_data
+   ```
 
 2. Train the model<br/>
   If you want you can adjust the parameters for learning in the file `bert/parameters.py`.
-  ```bash
-  # Create directories for model stats and finetuned models
-  mkdir finetuned_model_stats
-  mkdir finetuned_models
-  
-  # Train model
-  python3 -m bert.train
-  ```
+   ```bash
+   # Create directories for model stats and finetuned models
+   mkdir finetuned_model_stats
+   mkdir finetuned_models
+   
+   # Train model
+   python3 -m bert.train
+   ```
 
 3. Evaluate the model<br/>
-  ```bash
-  python3 -m bert.label_test
-  ```
+   ```bash
+   python3 -m bert.label_test
+   ```
 
 ### Factors
 Training takes around 13 hours and consumes aroung 4 kWh for the mentioned hardware.
