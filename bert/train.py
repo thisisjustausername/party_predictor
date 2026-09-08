@@ -117,9 +117,13 @@ for n in range(params.num_epochs):
         torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}'))
     print(f'Epoch {n + 1}:  train loss: {epoch_loss},    val F1: {val_f1}')
 
-models = {'latest': {k: v.cpu().clone() for k, v in model.state_dict().items()}, 'best_f1_val': best_state}
-with open(os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_states.json'), 'w') as f:
-    json.dump(models, f, indent=4)
+# Save model states to .pth (not JSON - tensors are not JSON serializable)
+torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_latest.pth'))
+torch.save(best_state, os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_best_val_f1_state.pth'))
+
+# Save metadata separately as JSON (optional)
+with open(os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_metadata.json'), 'w') as f:
+    json.dump({'note': f'Model weights saved in model_{new_name}_latest.pth and model_{new_name}_best_val_f1_state.pth', 'best_f1_val': best_f1}, f, indent=4)
 
 model.load_state_dict(best_state) # type: ignore
 
@@ -153,8 +157,9 @@ result['overall_test_precision'] = res_test['overall_precision']
 result['overall_test_recall'] = res_test['overall_recall']
 result['overall_test_accuracy'] = res_test['overall_accuracy']
 
+# TODO: remove commented code
 # save the model and the stats of the training
-torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_final'))
+# torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_final'))
 with open(os.path.join(params.repo_base_path, f'finetuned_model_stats/model_{new_name}_final.json'), 'w') as f:
     json.dump(result, f, indent=4)
 print(json.dumps(result, indent=4))
