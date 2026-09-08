@@ -7,14 +7,15 @@ Create datasets for training, validation and testing.
 
 # TODO: for training no overlap but still render edges unusable because of missing context (avoid óverlaps as they will be duplicates if trained on, maybe it is excluded)
 
-from typing import overload
 import json
 import os
+from typing import Any, overload
 
 import numpy as np
 from sklearn.model_selection import train_test_split as tts
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
+import torch
 
 import bert.parameters as params
 from bert.datatypes import ClsDataset
@@ -36,7 +37,7 @@ def ds_path(subpath: str) -> str:
 
 
 def train_test_split(
-        X: list[str],
+        X: list[Any],
         y: list[np.ndarray | float],
         test_size: float = 0.2,
         val_size: float | None = 0.1,
@@ -46,7 +47,7 @@ def train_test_split(
     Split the data into training and testing sets, normalize the X-data and fix the y-data
 
     Args:
-        X (list[str]): The X data
+        X (list[Any]): The X data
         y (list[np.ndarray | float]): classes
         test_size (float): The proportion of the data to use for testing
         val_size (float): The proportion of the data to use for validation
@@ -64,7 +65,7 @@ def train_test_split(
     # free memory
     del X_mid, y_mid
 
-    return (X_train, X_val, X_test, y_train, y_val, y_test) if val_size is not None else (X_train, X_test, y_train, y_test)
+    return (X_train, X_val, X_test, y_train, y_val, y_test) if val_size is not None else (X_train, X_test, y_train, y_test)  # type: ignore
 
 
 def load_data(
@@ -228,6 +229,36 @@ def do_all(path: str, create_y: bool = True, shuffle: tuple[bool, bool, bool] | 
         return data['dataloader'] # type: ignore
     # return a tuple of DataLoader objects for the train, val and test sets
     return tuple([i['dataloader'] for i in data]) # type: ignore
+
+
+def split_to_loader(path: str, shuffle: tuple[bool, bool, bool] | tuple[bool, bool] = (True, False, False)) -> dict[str, DataLoader] | ValueError:
+    '''
+    Turn a train / (val) / test split into a tuple of DataLoader objects
+    This is the equivalent to do_all func, but for data that was split before and saved to disk.
+    Args:
+        path (str): path to the dataset file
+        shuffle (tuple[bool, bool, bool] | tuple[bool, bool]): a tuple of booleans indicating whether to shuffle the data for each split
+    Returns:
+        dict[str, DataLoader]: a dictionary of DataLoader objects, keyed by split name (train, val, test)
+    '''
+    with open(path, 'r') as f:
+        data = json.load(f)
+    if len(shuffle) == 3 and set(data.keys()) != {'train', 'val', 'test'}:
+        raise ValueError('Dataset must contain keys "train", "val" and "test".')
+    if len(shuffle) == 2 and set(data.keys()) != {'train', 'test'}:
+        raise ValueError('Dataset must contain keys "train" and "test".')
+
+    # NOTE: this uses implicit shuffling as shuffle is ordered train, val, test !!!
+    # TODO: make shuffling explicit by creating a better function param
+    data = {k: ([{'input_ids': torch.tensor(i['input_ids']), 'attention_mask': torch.tensor(i['attention_mask'])} for i in v['X']], v['y'], shuffle[i]) for i, (k, v) in enumerate(data.items())}
+
+    return_data = {}
+    for k, (X, y, sh) in data.items():
+        res = ClsDataset(X, y)
+        dl = DataLoader(res, batch_size=params.batch_size, shuffle=sh)
+        return_data[k] = dl
+
+    return return_data
 
 
 if __name__ == '__main__':

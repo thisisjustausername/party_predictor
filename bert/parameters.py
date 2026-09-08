@@ -16,9 +16,12 @@ cutoff = 2500
 
 # model to use
 mdl = 'modern-german-bert'
+mdl = 'german-bert-cased'
 
-# random seed for training
+# random seed for training and train / val / test split generation
 seed = 42
+test_size = 0.2
+val_size = 0.15
 
 # training hyperparameters
 num_epochs = 16
@@ -27,7 +30,7 @@ num_epochs = 16
 early_stopping_patience: int | None = None
 
 # NOTE: The effective batch size is the product of the batch size and the number of gradient accumulation steps.
-batch_size = 1
+batch_size = 4
 accum_steps = 4
 
 learning_rate = 3e-5

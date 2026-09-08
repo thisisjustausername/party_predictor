@@ -13,7 +13,7 @@ from tqdm import tqdm
 from transformers import get_linear_schedule_with_warmup as lin_sched
 
 import bert.parameters as params
-from bert.data_set import do_all, ds_path
+from bert.data_set import do_all, ds_path, split_to_loader
 from bert.datatypes import BertClsModel
 from bert.evl import clean_eval, evaluate_model
 
@@ -28,13 +28,16 @@ random.seed(params.seed)
 os.environ['PYTHONHASHSEED'] = str(params.seed)
 
 predictions = []
-train, val, test = do_all(ds_path('protocols_speeches_clean.json'), create_y=True, shuffle=(True, False, False))
+# train, val, test = do_all(ds_path('protocols_speeches_clean.json'), create_y=True, shuffle=(True, False, False))
+# NOTE: uses implicit extraction as dict is ordered the same
+train, val, test = split_to_loader(ds_path('datasplits.json'), shuffle=(True, False, False)).values()  # type: ignore
 
 #####################################
 # Instantiate the model             #
 #####################################
 
 model = BertClsModel()
+# model.half()
 model = model.to(params.device)
 
 #####################################
