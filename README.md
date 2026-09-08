@@ -16,7 +16,7 @@ No matter what, run this code!<br/>
    ```
 2. Install dependencies<br/>
   We recommend using uv as package manager, but pip works just fine as well (maybe a little slower).
-  Also do not get the idea to use any python version older than 3.13. The newest used features on it are supported starting at version 3.7, libraries often require higher versions though.<br/>
+  Also do not get the idea to use any python version older than 3.13. The newest used features on it are supported starting at version 3.7, libraries often require higher versions though.
     * uv
       ```bash
       # Install virtual environment
