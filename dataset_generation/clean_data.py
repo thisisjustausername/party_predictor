@@ -111,8 +111,9 @@ chunked_data = []
 for index, (chunk, sm_id) in enumerate(zip(input_ids, sample_map)):
     speech_idx = sm_id
     dta = clean_data[speech_idx]
-    # NOTE: removing too short chunks
-    if len(chunk) < min_chunk_length:
+    # NOTE: removing too short chunks, do it like this as the chunk is padded
+    length = next((ind for ind, i in enumerate(attention_mask[index]) if i == 0), len(attention_mask[index]))
+    if length < min_chunk_length:
         continue
     entry = {
         'id': index,
@@ -123,7 +124,7 @@ for index, (chunk, sm_id) in enumerate(zip(input_ids, sample_map)):
         'talker': dta['talker'].copy(),
         'input_ids': chunk,
         'attention_mask': attention_mask[index],
-        'chunk_length': len(chunk),
+        'chunk_length': length,
         'speech_id': speech_idx,
         'chunk_index': chunk_counters[speech_idx],
         'chunks_count': counts[speech_idx],
