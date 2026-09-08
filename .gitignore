@@ -220,3 +220,6 @@ __marimo__/
 # Added
 models/
 finetuned_models/
+datasets/datasplits.json
+datasets/protocols_speeches_clean.json
+datasets/protocols_speeches_chunked.json
