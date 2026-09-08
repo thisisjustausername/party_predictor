@@ -12,3 +12,4 @@ xmltodict
 matplotlib
 seaborn
 tqdm
+IPython
