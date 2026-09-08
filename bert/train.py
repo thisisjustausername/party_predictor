@@ -154,7 +154,7 @@ result['overall_test_recall'] = res_test['overall_recall']
 result['overall_test_accuracy'] = res_test['overall_accuracy']
 
 # save the model and the stats of the training
-torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}'))
-with open(os.path.join(params.repo_base_path, f'finetuned_model_stats/model_{new_name}.json'), 'w') as f:
+torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_final'))
+with open(os.path.join(params.repo_base_path, f'finetuned_model_stats/model_{new_name}_final.json'), 'w') as f:
     json.dump(result, f, indent=4)
 print(json.dumps(result, indent=4))
