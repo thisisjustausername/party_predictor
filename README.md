@@ -1,6 +1,6 @@
 # Party Predictor
 *A german version can be found under [Deutsches README](README.de.md).*<br/><br/>
-The European wide trend to right-wing politics hasn't missed Germany. But how clearly is this being reflected in the Bundestag?<br/>
+The European wide trend to right-wing politics hasn't missed Germany. For the first time ever the Federal Republic of Germany is shy of getting a Minister-President who is part of a right-extreme party. This trend can be observed in the Bundestag as well with the AfD being the most popular party in current polls. But how clearly is this being reflected by the rethoric used in the Bundestag?<br/>
 We went out to analyze whether there is a difference in the speeches of different political orientations. These orientations were determined by the CHES score for right to left wing politics though we performed the classification and uniqueness constraint research independent of this score.<br/>
 Additionally, we looked at the causes for classifications in order to pinpoint specific choices of words and phrases that are unique to different political orientations and compared them with similar phrases from historical speeches.
 
@@ -15,14 +15,26 @@ No matter what, run this code!<br/>
    cd party_predictor
    ```
 2. Install dependencies<br/>
-   ```bash
-   # Install virtual environment
-   python3 -m venv venv
-   source venv/bin/activate
-   
-   # Install dependencies
-   pip3 install -r requirements.txt
-   ```
+  We recommend using uv as package manager, but pip works just fine as well (maybe a little slower).
+  Also do not get the idea to use any python version older than 3.13. The newest used features on it are supported starting at version 3.7, libraries often require higher versions though.<br/>
+    * uv
+      ```bash
+      # Install virtual environment
+      uv venv --python 3.13 venv
+      source venv/bin/activate
+      
+      # Install dependencies
+      uv pip install -r requirements.txt
+      ```
+    * pip
+      ```bash
+      # Install virtual environment
+      python3 -m venv venv
+      source venv/bin/activate
+      
+      # Install dependencies
+      pip3 install -r requirements.txt
+      ```
 
 3. Initialize the ENV-variables<br/>
   For that simply research the API-key of the Bundestag API and replace `<Input your API Key here>` in the following code snippet with it.

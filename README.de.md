@@ -2,7 +2,7 @@
 *Eine englische Version kann unter [English README](README.md) gefunden werden.*<br/><br/>
 Der europaweite Trend zu rechter Politik hat auch Deutschland nicht verfehlt. Doch inwiefern kann dies an im Bundestag gehaltenen Reden nachvollzogen werden?<br/>
 Wir haben tausende Reden der Parteien AfD, CDU/CSU, Bündnis_90/Die Grünen, SPD und der LINKEn analysiert. Als Baseline wurde der CHES score für die politische Richtung einer Partei verwendet. Dennoch vollzogen wir unsere Klassifikation und Analyse der sprachlichen Besonderheiten der verschiedenen Parteien unabhängig von diesem Score.<br/>
-Hierzu finetuneten wir ein deutsches BERT-Modell auf Klassifikation von Reden in Parteigruppen und analysierten die Ursachen für die gegebenen Klassifikationen. Diese verglichen wir anschließend mit verschiedenen historischen Reden unterschiedlicher gemäßigter und extremen politischen Richtungen, um Gemeinsamkeiten und Unterschiede feststellen zu können. 
+Hierzu finetuneten wir ein deutsches BERT-Modell auf Klassifikation von Reden in Parteigruppen und analysierten die Ursachen für die gegebenen Klassifikationen. Diese verglichen wir anschließend mit verschiedenen historischen Reden unterschiedlicher gemäßigter und extremer politischen Richtungen, um Gemeinsamkeiten und Unterschiede feststellen zu können. 
 
 # Getting started
 Du willst unser wunderschönes Tool verwenden ohne auch nur eine Sekunde darauf zu verschwenden, unseren supersauberen Code zu genießen. Auch wenn uns dieses Verhalten äußerst suspekt erscheint, haben wir für Dich eine kleine Übersicht an Befehlen zusammengestellt, durch die Du Dich durchhangeln kannst. So kannst Du unseren Code auch verwenden, wenn Du keine Tuten und Blasen von Programmieren hast (vorausgesetzt Du verwendest Linux und hast Python bereits installiert).<br/>
@@ -15,14 +15,25 @@ Egal was komme, führe diesen Code aus (Vertraue uns, was ist das Schlimmste, da
    cd party_predictor
    ```
 2. Installiere Dependencies<br/>
-   ```bash
-   # Install virtual environment
-   python3 -m venv venv
-   source venv/bin/activate
-   
-   # Install dependencies
-   pip3 install -r requirements.txt
-   ```
+  Wir empfehlen, uv als Paketmanager zu verwenden, aber pip funktioniert auch (gegebenenfalls etwas langsamer). Verwende zudem mindestens Python3.13. Die neuesten verwendeten Features wurden in Version 3.7 hinzugefügt, allerdings benötigen die Libraries häufig höhere Versionen.
+    * uv
+      ```bash
+      # Install virtual environment
+      uv venv --python 3.13 venv
+      source venv/bin/activate
+      
+      # Install dependencies
+      uv pip install -r requirements.txt
+      ```
+    * pip
+      ```bash
+      # Install virtual environment
+      python3 -m venv venv
+      source venv/bin/activate
+      
+      # Install dependencies
+      pip3 install -r requirements.txt
+      ```
 
 3. Initialisiere die ENV-Variablen<br/>
   Recherchiere hierfür den API-Schlüssel der Bundestags-API und ersetze `<Input your API Key here>` im folgenden Code-Snippet damit.
