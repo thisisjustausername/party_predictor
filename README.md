@@ -91,9 +91,45 @@ In case you want to finetune the BERT-model yourself, use this pipeline. We heav
    ```
 
 ### Factors
-Training takes around 13 hours and consumes aroung 4 kWh for the mentioned hardware.
 
-## Inference
+## Model results
+Training modern-BERt takes around 13 hours and consumes aroung 4 kWh for the mentioned hardware. It results in a F1-score of 0.87.<br/>
+The version with Standard-BERT often requires chunking of speeches, though heavily outperforms the modern-BERT approach and also requires far less ressources, already running on a NVIDIA RTX 5000 Mobile (110W) with 16GB VRAM in 8 min/epoch.
+
+The current SOTA model was trained on a train split on 65% of the data (shuffled and randomly selected).<br/>
+Hyperparameters were tuned on a validation set that contained 15% of the dataset.<br/>
+Finally after training the model was evaluated on a test set making up 20% of the dataset.<br/><br/>
+__Parameters__
+| Parameter | Value |
+| --------- | ----- |
+| model | google-bert/bert-base-german-cased |
+| context length | 512 tokens |
+| batch size | 16 (4 steps in parallel, accumulating over 4 iterations) |
+| epochs | 16 |
+| learning rate | 3e-5 |
+| betas | (0.9,0.999) |
+| epsilon | 1e-08 |
+| seed | 42 |
+| loss | CrossEntropyLoss |
+| Optimizer | AdamW |
+| Scheduler | LambdaLR |
+| Classifier | single linear layer (no activation func) |
+
+<br/>
+We achieved following scores on the test data:
+
+__Results__
+| Measure | Value |
+| ------- | ----- |
+| F1-Score | 0.95 |
+| Precision | 0.95 |
+| Recall | 0.94 |
+| Accuracy | 0.94 |
+
+These results are suspiciously good, therefore we want to clarify possible problems that could cause such results.<br/>
+We completely avoid data leakage, though implicit information leakage has not yet been handled. For example could a talker mention their colleage or talk positively about their own party. Therefore we need to run NER in order to mask names, organizations, and other information, that gives a hint to the party without carrying any to this project relevant information.<br/>
+In general we screened the data for such information leakage and not much has been found. Therefore we assume that this would only have a minor impact.<br/>
+Despite that we assume, that the test set is not completely balanced and may produce better results than expected.
 
 [TODO: finish]: #
 
@@ -104,6 +140,8 @@ Training takes around 13 hours and consumes aroung 4 kWh for the mentioned hardw
 # TODOs
 * Using NER mask the names of persons and organizations in speeches to avoid classifying based on them.
 * Make training deterministic using random seeds
+* Update German README
+* Avoid information leakage
 
 # Malicious use cases
 Knowing how successful a past speech was this tool can be used to help generate new speeches that are similar in the choice of words and phrases. This can lead to generating populistical and right-extreme speeches (the same applies for left-extreme speeches, too) as such speeches are contained in the training data to allow classifying and analyzing them.
