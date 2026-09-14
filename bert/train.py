@@ -13,7 +13,7 @@ from tqdm import tqdm
 from transformers import get_linear_schedule_with_warmup as lin_sched
 
 import bert.parameters as params
-from bert.data_set import do_all, ds_path, split_to_loader
+from bert.data_set import ds_path, split_to_loader
 from bert.datatypes import BertClsModel
 from bert.evl import clean_eval, evaluate_model
 
