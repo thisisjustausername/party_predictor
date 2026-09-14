@@ -88,7 +88,7 @@ for n in range(params.num_epochs):
     it = iter(train)  # Create the iterator from the training dataset
     epoch_loss, steps = 0, 0      # To keep track of the current epoch's loss
 
-    for index, (X, y) in tqdm(enumerate(it), total=len(train), desc=f'Epoch {n + 1}'):              # Obtain a tensor X = batch of X-values, y accordingly
+    for index, (X, y) in tqdm(enumerate(it), total=len(train), desc=f'Epoch {n + 1}'):
         X = {k: v.to(params.device) for k, v in X.items()}
         y = y.to(params.device)
         with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
@@ -114,12 +114,12 @@ for n in range(params.num_epochs):
         best_f1 = val_f1
         best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
         print(f'New best model found at epoch {n + 1} with F1 score on val: {best_f1}')
-        torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}'))
+        torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_best_val_f1_state.pth'))
     print(f'Epoch {n + 1}:  train loss: {epoch_loss},    val F1: {val_f1}')
 
 # Save model states to .pth (not JSON - tensors are not JSON serializable)
 torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_latest.pth'))
-torch.save(best_state, os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_best_val_f1_state.pth'))
+# torch.save(best_state, os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_best_val_f1_state.pth'))
 
 # Save metadata separately as JSON (optional)
 with open(os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_metadata.json'), 'w') as f:
