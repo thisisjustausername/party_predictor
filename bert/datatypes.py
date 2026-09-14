@@ -60,6 +60,8 @@ class BertClsModel(Module):
         self.bert = transformers.AutoModelForSequenceClassification.from_pretrained(os.path.join(params.model_base_path, params.mdl), num_labels=num_tags)
         # self.dropout = torch.nn.Dropout(0.1)
 
-    def forward(self, inputs):
-        outputs = self.bert(**inputs) # , output_hidden_states=True)
+    def forward(self, inputs, output_hidden_states=False):
+        outputs = self.bert(**inputs, output_hidden_states=output_hidden_states)
+        if output_hidden_states:
+            return outputs.logits, outputs.hidden_states
         return outputs.logits
