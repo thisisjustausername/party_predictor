@@ -30,8 +30,8 @@ num_epochs = 16
 early_stopping_patience: int | None = None
 
 # NOTE: The effective batch size is the product of the batch size and the number of gradient accumulation steps.
-batch_size = 4
-accum_steps = 4
+batch_size = 16
+accum_steps = 1
 
 learning_rate = 3e-5
 betas=(0.9,0.999)
