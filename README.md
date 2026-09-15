@@ -94,7 +94,7 @@ In case you want to finetune the BERT-model yourself, use this pipeline. We heav
 
 ## Model results
 Training modern-BERt takes around 13 hours and consumes aroung 4 kWh for the mentioned hardware. It results in a F1-score of 0.87.<br/>
-The version with Standard-BERT often requires chunking of speeches, though heavily outperforms the modern-BERT approach and also requires far less ressources, already running on a NVIDIA RTX 5000 Mobile (110W) with 16GB VRAM in 8 min/epoch.
+The version with Standard-BERT often requires chunking of speeches, though heavily outperforms the modern-BERT approach and also requires far less ressources, already running on a NVIDIA RTX 5000 Mobile (110W) with 16GB VRAM in 4 min/epoch. Less than 3GB of VRAM were required for training and evaluation when using a batch size of 4 and 4 accumulation steps.
 
 The current SOTA model was trained on a train split on 65% of the data (shuffled and randomly selected).<br/>
 Hyperparameters were tuned on a validation set that contained 15% of the dataset.<br/>
@@ -104,7 +104,7 @@ __Parameters__
 | --------- | ----- |
 | model | google-bert/bert-base-german-cased |
 | context length | 512 tokens |
-| batch size | 16 (4 steps in parallel, accumulating over 4 iterations) |
+| batch size | 16 (4 steps in parallel, accumulating over 4 iterations for non-rep.; (16, 1) for rep.) |
 | epochs | 16 |
 | learning rate | 3e-5 |
 | betas | (0.9,0.999) |
@@ -118,13 +118,21 @@ __Parameters__
 <br/>
 We achieved following scores on the test data:
 
-__Results__
+__Results__ (non-reproducible)
 | Measure | Value |
 | ------- | ----- |
 | F1-Score | 0.95 |
 | Precision | 0.95 |
 | Recall | 0.94 |
 | Accuracy | 0.94 |
+
+__Results__ (reproducible)
+| Measure | Value |
+| ------- | ----- |
+| F1-Score | 0.77 |
+| Precision | 0.79 |
+| Recall | 0.76 |
+| Accuracy | 0.79 |
 
 These results are suspiciously good, therefore we want to clarify possible problems that could cause such results.<br/>
 We completely avoid data leakage, though implicit information leakage has not yet been handled. For example could a talker mention their colleage or talk positively about their own party. Therefore we need to run NER in order to mask names, organizations, and other information, that gives a hint to the party without carrying any to this project relevant information.<br/>

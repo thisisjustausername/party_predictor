@@ -1,5 +1,6 @@
 # Party Predictor (Partei Klassifikator)
-*Eine englische Version kann unter [English README](README.md) gefunden werden.*<br/><br/>
+*Eine englische Version kann unter [English README](README.md) gefunden werden.*<br/>
+*Achtung: Die deutsche Version ist nicht up to date!*<br/><br/>
 Der europaweite Trend zu rechter Politik hat auch Deutschland nicht verfehlt. Doch inwiefern kann dies an im Bundestag gehaltenen Reden nachvollzogen werden?<br/>
 Wir haben tausende Reden der Parteien AfD, CDU/CSU, Bündnis_90/Die Grünen, SPD und der LINKEn analysiert. Als Baseline wurde der CHES score für die politische Richtung einer Partei verwendet. Dennoch vollzogen wir unsere Klassifikation und Analyse der sprachlichen Besonderheiten der verschiedenen Parteien unabhängig von diesem Score.<br/>
 Hierzu finetuneten wir ein deutsches BERT-Modell auf Klassifikation von Reden in Parteigruppen und analysierten die Ursachen für die gegebenen Klassifikationen. Diese verglichen wir anschließend mit verschiedenen historischen Reden unterschiedlicher gemäßigter und extremer politischen Richtungen, um Gemeinsamkeiten und Unterschiede feststellen zu können. 
