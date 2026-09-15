@@ -125,6 +125,11 @@ torch.save(model.state_dict(), os.path.join(params.repo_base_path, f'finetuned_m
 with open(os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name}_metadata.json'), 'w') as f:
     json.dump({'note': f'Model weights saved in model_{new_name}_latest.pth and model_{new_name}_best_val_f1_state.pth', 'best_f1_val': best_f1}, f, indent=4)
 
+
+# evaluate on test set
+res_test_latest, label_data = evaluate_model(model, test)
+test_result = clean_eval(res_test_latest)
+
 model.load_state_dict(best_state) # type: ignore
 
 res, label_data = evaluate_model(model, val)
@@ -156,6 +161,9 @@ result['overall_test_f1'] = res_test['overall_f1']
 result['overall_test_precision'] = res_test['overall_precision']
 result['overall_test_recall'] = res_test['overall_recall']
 result['overall_test_accuracy'] = res_test['overall_accuracy']
+result['overall_latest_test_precision'] = res_test_latest['overall_precision']
+result['overalllatest__test_recall'] = res_test_latest['overall_recall']
+result['overallatest_l_test_accuracy'] = res_test_latest['overall_accuracy']
 
 # TODO: remove commented code
 # save the model and the stats of the training
