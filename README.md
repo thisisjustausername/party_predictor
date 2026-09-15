@@ -118,6 +118,7 @@ __Parameters__
 <br/>
 We achieved following scores on the test data:
 
+*Standard BERT*<br/>
 __Results__ (non-reproducible)
 | Measure | Value |
 | ------- | ----- |
@@ -134,7 +135,16 @@ __Results__ (reproducible)
 | Recall | 0.76 |
 | Accuracy | 0.79 |
 
-These results are suspiciously good, therefore we want to clarify possible problems that could cause such results.<br/>
+*Modern BERT*<br/>
+__Results__
+| Measure | Value |
+| ------- | ----- |
+| F1-Score | 0.87 |
+| Precision | 0.87 |
+| Recall | 0.86 |
+| Accuracy | 0.87 |
+
+These results are quite good, therefore we want to clarify possible problems that could cause such results.<br/>
 We completely avoid data leakage, though implicit information leakage has not yet been handled. For example could a talker mention their colleage or talk positively about their own party. Therefore we need to run NER in order to mask names, organizations, and other information, that gives a hint to the party without carrying any to this project relevant information.<br/>
 In general we screened the data for such information leakage and not much has been found. Therefore we assume that this would only have a minor impact.<br/>
 Despite that we assume, that the test set is not completely balanced and may produce better results than expected.
