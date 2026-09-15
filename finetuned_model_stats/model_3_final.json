@@ -1,0 +1,30 @@
+{
+    "overall_f1": 0.7884543978961461,
+    "overall_precision": 0.8062208800135972,
+    "overall_recall": 0.779875128829865,
+    "overall_accuracy": 0.8099173553719008,
+    "model": "german-bert-cased",
+    "input_length": 512,
+    "num_epochs": 16,
+    "batch_size": 16,
+    "accum_steps": 1,
+    "effective_batch_size": 16,
+    "seed": 42,
+    "freeze_layers": 6,
+    "early_stopping_patience": null,
+    "learning_rate": 3e-05,
+    "betas": [
+        0.9,
+        0.999
+    ],
+    "epsilon": 1e-08,
+    "subtokens": -100,
+    "loss": "CrossEntropyLoss",
+    "optimizer": "AdamW",
+    "scheduler": "LambdaLR",
+    "model_layers": "BertClsModel(\n  (bert): BertForSequenceClassification(\n    (bert): BertModel(\n      (embeddings): BertEmbeddings(\n        (word_embeddings): Embedding(30000, 768, padding_idx=0)\n        (position_embeddings): Embedding(512, 768)\n        (token_type_embeddings): Embedding(2, 768)\n        (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True, bias=True)\n        (dropout): Dropout(p=0.1, inplace=False)\n      )\n      (encoder): BertEncoder(\n        (layer): ModuleList(\n          (0-11): 12 x BertLayer(\n            (attention): BertAttention(\n              (self): BertSelfAttention(\n                (query): Linear(in_features=768, out_features=768, bias=True)\n                (key): Linear(in_features=768, out_features=768, bias=True)\n                (value): Linear(in_features=768, out_features=768, bias=True)\n                (dropout): Dropout(p=0.1, inplace=False)\n              )\n              (output): BertSelfOutput(\n                (dense): Linear(in_features=768, out_features=768, bias=True)\n                (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True, bias=True)\n                (dropout): Dropout(p=0.1, inplace=False)\n              )\n            )\n            (intermediate): BertIntermediate(\n              (dense): Linear(in_features=768, out_features=3072, bias=True)\n              (intermediate_act_fn): GELUActivation()\n            )\n            (output): BertOutput(\n              (dense): Linear(in_features=3072, out_features=768, bias=True)\n              (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True, bias=True)\n              (dropout): Dropout(p=0.1, inplace=False)\n            )\n          )\n        )\n      )\n      (pooler): BertPooler(\n        (dense): Linear(in_features=768, out_features=768, bias=True)\n        (activation): Tanh()\n      )\n    )\n    (dropout): Dropout(p=0.1, inplace=False)\n    (classifier): Linear(in_features=768, out_features=5, bias=True)\n  )\n)",
+    "overall_test_f1": 0.7689051569475424,
+    "overall_test_precision": 0.7899487711275116,
+    "overall_test_recall": 0.7604739147117585,
+    "overall_test_accuracy": 0.7849758787043418
+}
