@@ -13,3 +13,5 @@ matplotlib
 seaborn
 tqdm
 IPython
+seaborn
+pyarrow<21.0.0
