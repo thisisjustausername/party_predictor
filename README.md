@@ -130,10 +130,10 @@ __Results__ (non-reproducible)
 __Results__ (reproducible)
 | Measure | Value |
 | ------- | ----- |
-| F1-Score | 0.77 |
-| Precision | 0.79 |
-| Recall | 0.76 |
-| Accuracy | 0.79 |
+| F1-Score | 0.82 |
+| Precision | 0.82 |
+| Recall | 0.80 |
+| Accuracy | 0.82 |
 
 *Modern BERT*<br/>
 __Results__
@@ -160,6 +160,7 @@ Despite that we assume, that the test set is not completely balanced and may pro
 * Make training deterministic using random seeds
 * Update German README
 * Avoid information leakage
+* Add LDA after BERT
 
 # Malicious use cases
 Knowing how successful a past speech was this tool can be used to help generate new speeches that are similar in the choice of words and phrases. This can lead to generating populistical and right-extreme speeches (the same applies for left-extreme speeches, too) as such speeches are contained in the training data to allow classifying and analyzing them.
