@@ -24,13 +24,13 @@ test_size = 0.2
 val_size = 0.15
 
 # training hyperparameters
-num_epochs = 16
+num_epochs = 32
 
 # early stopping
 early_stopping_patience: int | None = None
 
 # NOTE: The effective batch size is the product of the batch size and the number of gradient accumulation steps.
-batch_size = 16
+batch_size = 24
 accum_steps = 1
 
 learning_rate = 3e-5

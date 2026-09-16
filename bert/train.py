@@ -44,9 +44,11 @@ model = model.to(params.device)
 # Training / Fine-tuning the model  #
 #####################################
 
-files = [int(i[6:].split('.')[0]) for i in os.listdir(os.path.join(params.repo_base_path, 'finetuned_model_stats/'))] + [0]
+files = [int(i[6:].split('.', 1)[0].split('_', 1)[0]) for i in os.listdir(os.path.join(params.repo_base_path, 'finetuned_model_stats/'))] + [0]
 new_name = max(files) + 1
 
+freeze_layers = 0
+'''
 freeze_layers = 6
 
 for name, p in model.named_parameters():
@@ -56,6 +58,7 @@ for name, p in model.named_parameters():
             p.requires_grad = False
     elif 'embeddings' in name:
         p.requires_grad = False
+'''
 
 no_decay = ['bias', 'LayerNorm.weight']
 optimizer_grouped_parameters = [
@@ -162,8 +165,8 @@ result['overall_test_precision'] = res_test['overall_precision']
 result['overall_test_recall'] = res_test['overall_recall']
 result['overall_test_accuracy'] = res_test['overall_accuracy']
 result['overall_latest_test_precision'] = res_test_latest['overall_precision']
-result['overalllatest__test_recall'] = res_test_latest['overall_recall']
-result['overallatest_l_test_accuracy'] = res_test_latest['overall_accuracy']
+result['overall_latest_test_recall'] = res_test_latest['overall_recall']
+result['overall_latest_test_accuracy'] = res_test_latest['overall_accuracy']
 
 # TODO: remove commented code
 # save the model and the stats of the training

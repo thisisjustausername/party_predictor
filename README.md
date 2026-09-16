@@ -104,8 +104,8 @@ __Parameters__
 | --------- | ----- |
 | model | google-bert/bert-base-german-cased |
 | context length | 512 tokens |
-| batch size | 16 (4 steps in parallel, accumulating over 4 iterations for non-rep.; (16, 1) for rep.) |
-| epochs | 16 |
+| batch size | 24 |
+| epochs | 32 |
 | learning rate | 3e-5 |
 | betas | (0.9,0.999) |
 | epsilon | 1e-08 |

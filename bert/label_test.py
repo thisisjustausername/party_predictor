@@ -10,7 +10,7 @@ from bert.data_set import ds_path, split_to_loader
 from bert.datatypes import BertClsModel
 from bert.evl import clean_eval, evaluate_model
 
-model_name = 'model_3_latest.pth'
+model_name = 'model_4_best_val_f1_state.pth'
 
 random_state = np.random.RandomState(params.seed)
 
