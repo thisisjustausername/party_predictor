@@ -80,7 +80,7 @@ with open('datasets/protocols_speeches_clean.json', 'w') as f:
 ######### CREATE TOKENIZED DATASET #########
 # removed Nachfragen from dataset above, now actually create the tokenized dataset for training
 # max len sets the input for BERT, since standard BERT is used, 512 is the limit
-max_len = 512
+max_len = params.cutoff if params.mdl == 'modern-german-bert' else 512
 # stride is 20% of max len for overlaps
 stride = int(max_len * 0.2)
 
