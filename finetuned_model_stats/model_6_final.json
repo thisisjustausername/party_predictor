@@ -1,0 +1,11 @@
+{
+	"overall_f1": 0.8754892049836986,
+	"overall_precision": 0.8781673280559111,
+	"overall_recall": 0.8742820996850167,
+	"overall_accuracy": 0.8892709766162311,
+	"overall_f1_latest": 0.8809173801480286,
+	"overall_precision_latest": 0.882136234260259,
+	"overall_recall_latest": 0.8808797268831217,
+	"overall_accuracy_latest": 0.8933975240715268
+}
+

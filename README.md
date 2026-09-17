@@ -93,7 +93,7 @@ In case you want to finetune the BERT-model yourself, use this pipeline. We heav
 ### Factors
 
 ## Model results
-Training modern-BERt takes around 13 hours and consumes aroung 4 kWh for the mentioned hardware. It results in a F1-score of 0.87.<br/>
+Training modern-BERT takes around 13 hours and consumes aroung 4 kWh for the mentioned hardware for reaching around .87 F1-score. It results in a F1-score of 0.87.<br/>
 The version with Standard-BERT often requires chunking of speeches, though heavily outperforms the modern-BERT approach and also requires far less ressources, already running on a NVIDIA RTX 5000 Mobile (110W) with 16GB VRAM in 4 min/epoch. Less than 3GB of VRAM were required for training and evaluation when using a batch size of 4 and 4 accumulation steps.
 
 The current SOTA model was trained on a train split on 65% of the data (shuffled and randomly selected).<br/>
@@ -139,10 +139,10 @@ __Results__ (reproducible)
 __Results__
 | Measure | Value |
 | ------- | ----- |
-| F1-Score | 0.87 |
-| Precision | 0.87 |
-| Recall | 0.86 |
-| Accuracy | 0.87 |
+| F1-Score | 0.88 |
+| Precision | 0.88 |
+| Recall | 0.88 |
+| Accuracy | 0.89 |
 
 These results are quite good, therefore we want to clarify possible problems that could cause such results.<br/>
 We completely avoid data leakage, though implicit information leakage has not yet been handled. For example could a talker mention their colleage or talk positively about their own party. Therefore we need to run NER in order to mask names, organizations, and other information, that gives a hint to the party without carrying any to this project relevant information.<br/>
