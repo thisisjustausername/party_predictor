@@ -47,9 +47,9 @@ model = model.to(params.device)
 files = [int(i[6:].split('.', 1)[0].split('_', 1)[0]) for i in os.listdir(os.path.join(params.repo_base_path, 'finetuned_model_stats/'))] + [0]
 new_name = max(files) + 1
 
+
 freeze_layers = 0
-'''
-freeze_layers = 6
+'''freeze_layers = 3
 
 for name, p in model.named_parameters():
     if 'encoder.layer' in name:
@@ -57,8 +57,7 @@ for name, p in model.named_parameters():
         if layer_num < freeze_layers:
             p.requires_grad = False
     elif 'embeddings' in name:
-        p.requires_grad = False
-'''
+        p.requires_grad = False'''
 
 no_decay = ['bias', 'LayerNorm.weight']
 optimizer_grouped_parameters = [
@@ -110,6 +109,8 @@ for n in range(params.num_epochs):
     res, _ = evaluate_model(model, val)
     val_f1 = res['overall_f1']
     losses.append(epoch_loss)
+    # TODO: use val for early stopping, not train loss
+    # FIXME: use val f1 score
     if params.early_stopping_patience is not None and np.argmax(losses) < len(losses) - params.early_stopping_patience:
         print(f'Early stopping at epoch {n + 1} due to no improvement in validation loss for {params.early_stopping_patience} epochs.')
         break
@@ -131,7 +132,7 @@ with open(os.path.join(params.repo_base_path, f'finetuned_models/model_{new_name
 
 # evaluate on test set
 res_test_latest, label_data = evaluate_model(model, test)
-test_result = clean_eval(res_test_latest)
+# test_result = clean_eval(res_test_latest)
 
 model.load_state_dict(best_state) # type: ignore
 
@@ -140,7 +141,7 @@ result = clean_eval(res)
 
 # evaluate on test set
 res_test, label_data = evaluate_model(model, test)
-test_result = clean_eval(res_test)
+# test_result = clean_eval(res_test)
 
 # Save thethe stats of the training
 result['model'] = params.mdl
