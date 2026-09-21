@@ -99,6 +99,9 @@ The version with Standard-BERT often requires chunking of speeches, though heavi
 The current SOTA model was trained on a train split on 65% of the data (shuffled and randomly selected).<br/>
 Hyperparameters were tuned on a validation set that contained 15% of the dataset.<br/>
 Finally after training the model was evaluated on a test set making up 20% of the dataset.<br/><br/>
+We achieved following scores on the test data:
+
+*Standard BERT*<br/>
 __Parameters__
 | Parameter | Value |
 | --------- | ----- |
@@ -115,10 +118,6 @@ __Parameters__
 | Scheduler | LambdaLR |
 | Classifier | single linear layer (no activation func) |
 
-<br/>
-We achieved following scores on the test data:
-
-*Standard BERT*<br/>
 __Results__ (non-reproducible)
 | Measure | Value |
 | ------- | ----- |
@@ -135,7 +134,24 @@ __Results__ (reproducible)
 | Recall | 0.80 |
 | Accuracy | 0.82 |
 
+<br/><br/>
 *Modern BERT*<br/>
+__Parameters__
+| Parameter | Value |
+| --------- | ----- |
+| model | LSX-UniWue/ModernGBERT_1B |
+| context length | 2500 tokens |
+| batch size | 16 |
+| epochs | 32 |
+| learning rate | 3e-5 |
+| betas | (0.9,0.999) |
+| epsilon | 1e-08 |
+| seed | 42 |
+| loss | CrossEntropyLoss |
+| Optimizer | AdamW |
+| Scheduler | LambdaLR |
+| Classifier | single linear layer (no activation func) |
+
 __Results__
 | Measure | Value |
 | ------- | ----- |
