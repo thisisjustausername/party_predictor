@@ -149,6 +149,15 @@ We completely avoid data leakage, though implicit information leakage has not ye
 In general we screened the data for such information leakage and not much has been found. Therefore we assume that this would only have a minor impact.<br/>
 Despite that we assume, that the test set is not completely balanced and may produce better results than expected.
 
+
+# Results
+We pick model_6_latest as the best model according to F1-score. Therefore all following results are based on this model.
+
+## Visualization of the classification results
+Note that the clusters vary a lot depending on the model used. This can be observed by comparing a few of the visualizations in the `finetuned_model_visualized` folder.<br/>
+It is important to mention, that the axes differ from plot to plot as each plot is reduced to 2 dimensions using PCA individually.<br/>
+![PCA of the classification results](finetuned_model_visualized/pca_model_6_latest_2d.png)
+
 [TODO: finish]: #
 
 ## Explain classifications
