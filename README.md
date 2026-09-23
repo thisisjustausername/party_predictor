@@ -174,6 +174,9 @@ Note that the clusters vary a lot depending on the model used. This can be obser
 It is important to mention, that the axes differ from plot to plot as each plot is reduced to 2 dimensions using PCA individually.<br/>
 ![PCA of the classification results](finetuned_model_visualized/pca_model_6_latest_2d.png)
 
+As an example we classify a piece of a speech from Goebbels (the Propaganda Minister of the Third Reich) and map it onto the space of the speeches from the current parties of the Bundestag.<br/>
+![Classification results of Goebbels speech](finetuned_model_visualized/other_speeches/speech_Goebbels_model_6_latest.png)
+
 [TODO: finish]: #
 
 ## Explain classifications
