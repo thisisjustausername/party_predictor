@@ -96,7 +96,7 @@ In case you want to finetune the BERT-model yourself, use this pipeline. We heav
 Training modern-BERT takes around 13 hours and consumes aroung 4 kWh for the mentioned hardware for reaching around .87 F1-score. It results in a F1-score of 0.87.<br/>
 The version with Standard-BERT often requires chunking of speeches, though heavily outperforms the modern-BERT approach and also requires far less ressources, already running on a NVIDIA RTX 5000 Mobile (110W) with 16GB VRAM in 4 min/epoch. Less than 3GB of VRAM were required for training and evaluation when using a batch size of 4 and 4 accumulation steps.
 
-The current SOTA model was trained on a train split on 65% of the data (shuffled and randomly selected).<br/>
+The current best model was trained on a train split on 65% of the data (shuffled and randomly selected).<br/>
 Hyperparameters were tuned on a validation set that contained 15% of the dataset.<br/>
 Finally after training the model was evaluated on a test set making up 20% of the dataset.<br/><br/>
 We achieved following scores on the test data:
