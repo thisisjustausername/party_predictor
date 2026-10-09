@@ -187,8 +187,7 @@ As an example we classify a piece of a speech from Goebbels (the Propaganda Mini
 * Using NER mask the names of persons and organizations in speeches to avoid classifying based on them.
 * Make training deterministic using random seeds
 * Update German README
-* Avoid information leakage
-* Add LDA after BERT
+* Avoid implicit information leakage
 
 # Malicious use cases
 Knowing how successful a past speech was this tool can be used to help generate new speeches that are similar in the choice of words and phrases. This can lead to generating populistical and right-extreme speeches (the same applies for left-extreme speeches, too) as such speeches are contained in the training data to allow classifying and analyzing them.
