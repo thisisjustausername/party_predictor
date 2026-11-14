@@ -28,7 +28,7 @@ def evaluate_model(model, data_loader) -> tuple[dict, dict]:
 
         for i in iter(data_loader):
             X, y = i
-            X = {k: v.to(device) for k, v in X.items()}
+            X = {k: v.to(device, non_blocking=True) for k, v in X.items()}
             y_probs = model(X)
             y_preds = torch.argmax(y_probs, dim=-1)
 

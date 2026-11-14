@@ -240,7 +240,7 @@ def do_all(path: str, create_val = True, create_y: bool = True, shuffle: tuple[b
 
     # return single DataLoader if only one set of data was provided
     if len(data) == 1:
-        return data['dataloader'] # type: ignore
+        return data[0]['dataloader'] # type: ignore
     # return a tuple of DataLoader objects for the train, val and test sets
     return tuple([i['dataloader'] for i in data]) # type: ignore
 

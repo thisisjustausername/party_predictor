@@ -37,7 +37,7 @@ class ClsDataset(Dataset):
         self.labels = labels
 
     def __getitem__(self, index) -> dict  | tuple[dict, torch.Tensor]:
-        label = torch.tensor(self.labels[index], dtype=torch.long, device=params.device) if self.labels is not None else None
+        label = torch.tensor(self.labels[index], dtype=torch.long) if self.labels is not None else None # , device=params.device
         item = {'attention_mask': self.encodings[index]['attention_mask'].clone().detach(),
                 'input_ids': self.encodings[index]['input_ids'].clone().detach()}
         if self.labels is None:
@@ -57,7 +57,11 @@ class BertClsModel(Module):
         '''
     def __init__(self):
         super().__init__()
-        self.bert = transformers.AutoModelForSequenceClassification.from_pretrained(os.path.join(params.model_base_path, params.mdl), num_labels=num_tags)
+        self.bert = transformers.AutoModelForSequenceClassification.from_pretrained(
+            os.path.join(params.model_base_path, params.mdl),
+            num_labels=num_tags,
+            attn_implementation='sdpa'
+        )
         # self.dropout = torch.nn.Dropout(0.1)
 
     def forward(self, inputs, output_hidden_states=False):
