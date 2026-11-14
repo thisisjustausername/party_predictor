@@ -12,10 +12,10 @@ import os
 from typing import Any, overload
 
 import numpy as np
+import torch
 from sklearn.model_selection import train_test_split as tts
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
-import torch
 
 import bert.parameters as params
 from bert.datatypes import ClsDataset
@@ -65,7 +65,7 @@ def train_test_split(
     # free memory
     del X_mid, y_mid
 
-    return (X_train, X_val, X_test, y_train, y_val, y_test) if val_size is not None else (X_train, X_test, y_train, y_test)  # type: ignore
+    return (X_train, X_val, X_test, y_train, y_val, y_test) if val_size is not None else (X_train, X_test, y_train, y_test)
 
 
 def load_data(
@@ -177,32 +177,46 @@ def label(tokens: list[str] | str,
 
 
 @overload
-def do_all(path: str, create_y: bool = True, shuffle: tuple[bool, bool, bool] = (True, False, False)) -> tuple[DataLoader, DataLoader, DataLoader]: ...
+def do_all(path: str, create_val: bool = True, create_y: bool = True, shuffle: tuple[bool, bool, bool] = (True, False, False)) -> tuple[DataLoader, DataLoader, DataLoader]: ...
+"""Used for training when creating training, validation and test sets."""
 
 @overload
-def do_all(path: str, create_y: bool = False, shuffle: bool = False) -> DataLoader: ...
+def do_all(path: str, create_val: bool = False, create_y: bool = True, shuffle: tuple[bool, bool] = (True, False)) -> tuple[DataLoader, DataLoader]: ...
+"""Used for training when creating training and test sets without validation set."""
 
-def do_all(path: str, create_y: bool = True, shuffle: tuple[bool, bool, bool] | bool = (True, False, False)) -> DataLoader | tuple[DataLoader, DataLoader, DataLoader]:
+@overload
+def do_all(path: str, create_val: bool = False, create_y: bool = False, shuffle: bool = False) -> DataLoader: ...
+"""Used for testing when creating a single DataLoader object without labels."""
+
+def do_all(path: str, create_val = True, create_y: bool = True, shuffle: tuple[bool, bool, bool] | tuple[bool, bool] | bool = (True, False, False)) -> tuple[DataLoader, DataLoader, DataLoader] | tuple[DataLoader, DataLoader] | DataLoader:
     '''
     Load data from json file, split into train, val and test sets, tokenize the data and create DataLoader objects for each set.
 
     Args:
         path (str): path to json file
+        create_val (bool). Whether to create a validation set
         create_y (bool): whether to create y labels or not
-        shuffle (tuple[bool, bool, bool]): whether to shuffle the train, val, test split
+        shuffle (tuple[bool, bool, bool] | tuple[bool, bool] | bool): whether to shuffle the train, val, test split
     Returns:
-        DataLoader | tuple[DataLoader, DataLoader, DataLoader]: DataLoader object for the train, val and test sets if create_y is True, else only DataLoader object for the data
+        tuple[DataLoader, DataLoader, DataLoader] | tuple[DataLoader, DataLoader] | DataLoader: DataLoader object for the train, val and test sets if create_y is True, else only DataLoader object for the data, if creat_val is True Dataloader object for train and test
     '''
     # load the data from the json file
     res = load_data(path, create_y=create_y)
     # split the data into train, val and test sets if create_y is True
     if create_y:
         X_all, y_all = res
-        X_train, X_val, X_test, y_train, y_val, y_test = train_test_split(X=X_all, y=y_all, random_seed=params.seed) # type: ignore
-        # create data for clean enumeration
-        data = ({'input': (X_train, y_train)},
-                {'input': (X_val, y_val)},
-                {'input': (X_test, y_test)})
+        if create_val is True:
+            X_train, X_val, X_test, y_train, y_val, y_test = train_test_split(X=X_all, y=y_all, random_seed=params.seed) # type: ignore
+            # create data for clean enumeration
+            data = ({'input': (X_train, y_train)},
+                    {'input': (X_val, y_val)},
+                    {'input': (X_test, y_test)})
+        else:
+            X_train, X_test, y_train, y_test = train_test_split(X=X_all, y=y_all, val_size=None, random_seed=params.seed) # type: ignore
+            # create data for clean enumeration
+            data = ({'input': (X_train, y_train)},
+                    {'input': (X_test, y_test)})
+
 
     else:
         X_all = res
