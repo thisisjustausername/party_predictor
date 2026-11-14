@@ -150,8 +150,9 @@ for n in range(params.num_epochs):
             or (index >= first_overhang and (index + 1 - first_overhang) % overhang == 0)
         ctx = model.no_sync() if ddp and not is_step else contextlib.nullcontext() # type: ignore
         with ctx:
-            y_pred = model(X)
-            loss = loss_fn(y_pred, y) / (params.accum_steps if index < first_overhang else overhang)
+            with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+                y_pred = model(X)
+                loss = loss_fn(y_pred, y) / (params.accum_steps if index < first_overhang else overhang)
             loss.backward()
         if is_step:
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
