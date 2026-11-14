@@ -1,3 +1,6 @@
+'''
+Evaluate a finetuned model on the test set and save the results to a JSON file.
+'''
 
 import json
 import os
@@ -25,3 +28,5 @@ test = split_to_loader(ds_path('datasplits.json'), shuffle=(True, False, False))
 res, label_data = evaluate_model(model, test)
 result = clean_eval(res)
 print(json.dumps(result, indent=4))
+with open(os.path.join(params.repo_base_path, f'finetuned_model_stats/{model_name}_test_results.json'), 'w') as f:
+    json.dump(result, f)
