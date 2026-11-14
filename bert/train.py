@@ -22,6 +22,10 @@ from bert.data_set import ds_path, split_to_loader
 from bert.datatypes import BertClsModel
 from bert.evl import clean_eval, evaluate_model
 
+os.environ.setdefault('PYTORCH_CUDA_ALLOC_CONF', 'expandable_segments:True')
+TRIM_PADDING = True
+MEM_PROBE = os.environ.get('MEM_PROBE') == '1'
+
 torch.manual_seed(params.seed)
 torch.cuda.manual_seed_all(params.seed)
 torch.backends.cudnn.deterministic = True
@@ -64,6 +68,9 @@ if ddp:
         train.dataset,
         batch_size=params.batch_size,
         sampler=train_sampler,
+        collate_fn=train.collate_fn,
+        num_workers=train.num_workers,
+        pin_memory=train.pin_memory,
     )
 # End usage for distributed training
 
@@ -78,7 +85,9 @@ if ddp:
 
 # Usage for distributed training
 raw_model = BertClsModel().to(device)
-model = DDP(raw_model, device_ids=[local_rank]) if ddp else raw_model
+if ddp:
+    raw_model.bert.activation_checkpointing_enable(activation_checkpointing_kwargs={'use_reentrant': False})
+model = DDP(raw_model, device_ids=[local_rank], gradient_as_bucket_view=True) if ddp else raw_model
 
 torch.manual_seed(params.seed + rank)
 # End usage for distributed training
@@ -126,6 +135,26 @@ scheduler = lin_sched(
     num_training_steps=total_steps
 )
 
+if MEM_PROBE:
+    model.train()
+    dummy = {
+        'input_ids': torch.randint(0, 1000, (params.batch_size, params.cutoff), device=device),
+        'attention_mask': torch.ones(params.batch_size, params.cutoff, dtype=torch.long, device=device),
+    }
+    torch.cuda.reset_peak_memory_stats()
+    with (model.no_sync() if ddp else contextlib.nullcontext()):  # type: ignore
+        with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+            probe_loss = model(dummy).float().mean()
+        probe_loss.backward()
+    peak = torch.cuda.max_memory_allocated() / 2**30
+    # AdamW keeps two fp32 states per parameter, allocated on the first optimizer.step()
+    adam_state = sum(p.numel() for p in raw_model.parameters()) * 8 / 2**30
+    print(f'[rank {rank}] peak fwd+bwd: {peak:.1f} GiB, + AdamW state ~{adam_state:.1f} GiB, '
+          f'GPU total {torch.cuda.get_device_properties(device).total_memory / 2**30:.1f} GiB')
+    if ddp:
+        dist.destroy_process_group()
+    raise SystemExit(0)
+
 best_f1 = -1
 best_state = None
 losses = []
@@ -146,6 +175,9 @@ for n in range(params.num_epochs):
     for index, (X, y) in tqdm(enumerate(it), total=len(train), desc=f'Epoch {n + 1}', disable=not is_main):
         X = {k: v.to(device, non_blocking=True) for k, v in X.items()}
         y = y.to(device, non_blocking=True)
+        if ddp and TRIM_PADDING and 'attention_mask' in X:
+            longest = int(X['attention_mask'].sum(dim=1).max().item())
+            X = {k: (v[:, :longest] if v.dim() == 2 else v) for k, v in X.items()}
         is_step = (index < first_overhang and (index + 1) % params.accum_steps == 0) \
             or (index >= first_overhang and (index + 1 - first_overhang) % overhang == 0)
         ctx = model.no_sync() if ddp and not is_step else contextlib.nullcontext() # type: ignore
@@ -158,7 +190,7 @@ for n in range(params.num_epochs):
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             scheduler.step()
-            optimizer.zero_grad()
+            optimizer.zero_grad() # NOTE: use at least torch>=2.0.0, otherwise for ddp use zero_grad(set_to_none=True)
 
         epoch_loss += loss.item() * (params.accum_steps if index < first_overhang else overhang)
 
@@ -171,6 +203,8 @@ for n in range(params.num_epochs):
 
     stop = torch.tensor([0], device=device)
     if is_main:
+        if ddp:
+            torch.cuda.empty_cache()
         raw_model.eval()
         res, _ = evaluate_model(raw_model, val)
         val_f1 = res['overall_f1']
