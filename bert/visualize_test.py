@@ -12,8 +12,8 @@ import bert.parameters as params
 from bert.data_set import ds_path, split_to_loader
 from bert.datatypes import BertClsModel
 
-model_name = 'model_2.pth'
-dims = 2
+model_name = 'model_6.pth'
+dims = 3
 
 matplotlib.use("TkAgg")
 
@@ -49,11 +49,33 @@ print(f'Explained variance ratio: {pca.explained_variance_ratio_}')
 print(f'Total explained variance: {np.sum(pca.explained_variance_ratio_)}')
 
 plt.figure(figsize=(10, 10))
-sns.scatterplot(x=reduced[:, 0], y=reduced[:, 1], hue=labels, hue_order=params.ner_labels, palette=params.party_colors, legend='full')
+if dims == 2:
+    sns.scatterplot(x=reduced[:, 0], y=reduced[:, 1], hue=labels, hue_order=params.ner_labels, palette=params.party_colors, legend='full')
+else:
+    labels = np.asarray(labels)
+
+    fig = plt.figure(figsize=(9, 7))
+    ax = fig.add_subplot(projection='3d')
+
+    for index, label in enumerate(params.ner_labels):                      # same order as hue_order
+        mask = labels == label
+        ax.scatter(
+            reduced[mask, 0], reduced[mask, 1], reduced[mask, 2],
+            color=params.party_colors[index],            # see note below
+            label=label,
+            s=20, alpha=0.8,
+        )
+
+    ax.set_xlabel("Component 1")
+    ax.set_ylabel("Component 2")
+    ax.set_zlabel("Component 3")
+    ax.legend(title="Label")
+    plt.show()
 
 plt.title(f'PCA of BERT Predictions (dims={dims})')
-plt.xlabel('Principal Component 1')
-plt.ylabel('Principal Component 2')
+if dims == 2:
+    plt.xlabel('Principal Component 1')
+    plt.ylabel('Principal Component 2')
 plt.legend(title='Labels', loc='best')
 plt.tight_layout()
 plt.savefig(os.path.join(params.repo_base_path, f'finetuned_model_visualized/pca_{model_name.split(".", 1)[0]}_{dims}d.png'))
