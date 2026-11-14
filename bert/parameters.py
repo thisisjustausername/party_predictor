@@ -68,14 +68,6 @@ party_colors =  ['black', 'red', 'green', 'purple', 'blue']
 # set device for fast computation
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-with open(repo_base_path + 'datasets/party_scores.json', 'r') as f:
-    party_scores = json.load(f)
-scores = np.array(list(party_scores.values()))
-party_mean = np.mean(scores)
-party_std = np.std(scores)
-party_scores = dict(zip(list(party_scores.keys()), (scores - party_mean) / party_std))
-del scores, party_mean, party_std
-
 # input length for tokenized articles
 with open(repo_base_path + f'models/{mdl}/config.json', 'r') as f:
     config = json.load(f)
