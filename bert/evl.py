@@ -6,10 +6,10 @@ import evaluate
 
 from bert.parameters import *
 
-f1_metric = evaluate.load('f1')
-precision_metric = evaluate.load('precision')
-recall_metric = evaluate.load('recall')
-accuracy_metric = evaluate.load('accuracy')
+f1_metric = evaluate.load('f1', 'models/metrics/f1')
+precision_metric = evaluate.load('precision', 'models/metrics/precision')
+recall_metric = evaluate.load('recall', 'models/metrics/recall')
+accuracy_metric = evaluate.load('accuracy', 'models/metrics/accuracy')
 
 def evaluate_model(model, data_loader) -> tuple[dict, dict]:
     '''
