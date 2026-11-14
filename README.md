@@ -1,20 +1,20 @@
 # Party Predictor
-*A german version can be found under [Deutsches README](README.de.md).*<br/><br/>
-The European wide trend to right-wing politics hasn't missed Germany. For the first time ever the Federal Republic of Germany is shy of getting a Minister-President who is part of a right-extreme party. This trend can be observed in the Bundestag as well with the AfD being the most popular party in current polls. But how clearly is this being reflected by the rethoric used in the Bundestag?<br/>
-We went out to analyze whether there is a difference in the speeches of different political orientations. These orientations were determined by the CHES score for right to left wing politics though we performed the classification and uniqueness constraint research independent of this score.<br/>
+*A german version can be found under [Deutsches README](README.de.md).*\
+The European wide trend to right-wing politics hasn't missed Germany. For the first time ever the Federal Republic of Germany is shy of getting a Minister-President who is part of a right-extreme party. This trend can be observed in the Bundestag as well with the AfD being the most popular party in current polls. But how clearly is this being reflected by the rethoric used in the Bundestag?\
+We went out to analyze whether there is a difference in the speeches of different political orientations.\
 Additionally, we looked at the causes for classifications in order to pinpoint specific choices of words and phrases that are unique to different political orientations and compared them with similar phrases from historical speeches.
 
 # Getting started
-Want to use our nice tool but don't want to spend a second enjoying the beautiful code we fabricated? No worries, we got you covered. Simply copy paste all the commands below in your terminal and hit enter every time (trust us, what's the worst that could happen?).<br/>
+Want to use our nice tool but don't want to spend a second enjoying the beautiful code we fabricated? No worries, we got you covered. Simply copy paste all the commands below in your terminal and hit enter every time (trust us, what's the worst that could happen?).
 
 ## Setup
-No matter what, run this code!<br/>
-1. Clone the repository<br/>
+No matter what, run this code!
+1. Clone the repository
    ```bash
    git clone https://github.com/thisisjustausername/party_predictor.git
    cd party_predictor
    ```
-2. Install dependencies<br/>
+2. Install dependencies\
   We recommend using uv as package manager, but pip works just fine as well (maybe a little slower).
   Also do not get the idea to use any python version older than 3.13. The newest used features on it are supported starting at version 3.7, libraries often require higher versions though.
     * uv
@@ -36,7 +36,7 @@ No matter what, run this code!<br/>
       pip3 install -r requirements.txt
       ```
 
-3. Initialize the ENV-variables<br/>
+3. Initialize the ENV-variables\
   For that simply research the API-key of the Bundestag API and replace `<Input your API Key here>` in the following code snippet with it.
    ```bash
    # Create .env file
@@ -44,13 +44,15 @@ No matter what, run this code!<br/>
    echo "API_KEY=<Input your API Key here>" >> .env
    ```
 
-4. Download the BERT-model from Huggingface.<br/>
+4. Download the BERT-model and metrics from Huggingface.\
    Optionally to guarantee a faster download first run `hf auth login` in your terminal to login to Huggingface.
    ```bash
-   python3 -m bert.download_bert
+   python3 -m bert.download.download_bert
+
+   python3 -m bert.download.download_metrics
    ```
 
-5. Have fun running the modules. Note, that all the files are written with absolute imports and should be run from the root directory of the repository as modules.<br/>
+5. Have fun running the modules. Note, that all the files are written with absolute imports and should be run from the root directory of the repository as modules.
    ```bash
    # THIS FILE DOESN'T EXIST. Simply a placeholder for files you want to run.
    # Check for correct file path
@@ -61,8 +63,8 @@ No matter what, run this code!<br/>
    ```
 
 ## Training pipeline
-In case you want to finetune the BERT-model yourself, use this pipeline. We heavily recommend using a NVIDIA GPU with at least 40GB of VRAM and an Ampere architecture.<br/>
-1. Download and preprocess the data<br/>
+In case you want to finetune the BERT-model yourself, use this pipeline. We heavily recommend using a NVIDIA GPU with at least 40GB of VRAM and an Ampere architecture
+1. Download and preprocess the data
    ```bash
    # Download data
    python3 -m dataset_generation.fetch_data
@@ -74,18 +76,21 @@ In case you want to finetune the BERT-model yourself, use this pipeline. We heav
    python3 -m dataset_generation.investigate_data
    ```
 
-2. Train the model<br/>
-  If you want you can adjust the parameters for learning in the file `bert/parameters.py`.
+2. Train the model\
+  If you want you can adjust the parameters for learning in the file `bert/parameters.py`.\
+  For `NUM_GPUS` select the amount of GPUs you want to use for training.
    ```bash
    # Create directories for model stats and finetuned models
    mkdir finetuned_model_stats
    mkdir finetuned_models
-   
-   # Train model
-   python3 -m bert.train
    ```
 
-3. Evaluate the model<br/>
+   ```bash
+   # Train model
+   torchrun --nproc_per_node=<NUM_GPUS> -m bert.train
+   ```
+
+3. Evaluate the model
    ```bash
    python3 -m bert.label_test
    ```
@@ -93,15 +98,15 @@ In case you want to finetune the BERT-model yourself, use this pipeline. We heav
 ### Factors
 
 ## Model results
-Training modern-BERT takes around 13 hours and consumes aroung 4 kWh for the mentioned hardware for reaching around .87 F1-score. It results in a F1-score of 0.87.<br/>
-The version with Standard-BERT often requires chunking of speeches, though heavily outperforms the modern-BERT approach and also requires far less ressources, already running on a NVIDIA RTX 5000 Mobile (110W) with 16GB VRAM in 4 min/epoch. Less than 3GB of VRAM were required for training and evaluation when using a batch size of 4 and 4 accumulation steps.
+Training modern-BERT takes around 7 hours (on 2 GPUs, 13h on 1 GPU) and consumes aroung 4 kWh for the mentioned hardware for reaching around .87 F1-score.\
+The version with Standard-BERT often requires chunking of speeches, though heavily outperforms the modern-BERT approach in puncto time needed for training and also requires far less ressources, already running on a NVIDIA RTX 5000 Mobile (110W) with 16GB VRAM in 4 min/epoch. Less than 3GB of VRAM were required for training and evaluation when using a batch size of 4 and 4 accumulation steps.
 
-The current best model was trained on a train split on 65% of the data (shuffled and randomly selected).<br/>
-Hyperparameters were tuned on a validation set that contained 15% of the dataset.<br/>
-Finally after training the model was evaluated on a test set making up 20% of the dataset.<br/><br/>
+The current best model was trained on a train split on 65% of the data (shuffled and randomly selected).\
+Hyperparameters were tuned on a validation set that contained 15% of the dataset.\
+Finally after training the model was evaluated on a test set making up 20% of the dataset.\
 We achieved following scores on the test data:
 
-*Standard BERT*<br/>
+*Standard BERT*\
 __Parameters__
 | Parameter | Value |
 | --------- | ----- |
@@ -134,8 +139,8 @@ __Results__ (reproducible)
 | Recall | 0.80 |
 | Accuracy | 0.82 |
 
-<br/><br/>
-*Modern BERT*<br/>
+\
+*Modern BERT*\
 __Parameters__
 | Parameter | Value |
 | --------- | ----- |
@@ -160,21 +165,21 @@ __Results__
 | Recall | 0.88 |
 | Accuracy | 0.89 |
 
-These results are quite good, therefore we want to clarify possible problems that could cause such results.<br/>
-We completely avoid data leakage, though implicit information leakage has not yet been handled. For example could a talker mention their colleage or talk positively about their own party. Therefore we need to run NER in order to mask names, organizations, and other information, that gives a hint to the party without carrying any to this project relevant information.<br/>
-In general we screened the data for such information leakage and not much has been found. Therefore we assume that this would only have a minor impact.<br/>
+These results are quite good, therefore we want to clarify possible problems that could cause such results.\
+We completely avoid data leakage, though implicit information leakage has not yet been handled. For example could a talker mention their colleage or talk positively about their own party. Therefore we need to run NER in order to mask names, organizations, and other information, that gives a hint to the party without carrying any to this project relevant information.\
+In general we screened the data for such information leakage and not much has been found. Therefore we assume that this would only have a minor impact.\
 Despite that we assume, that the test set is not completely balanced and may produce better results than expected.
 
 
 # Results
-We pick model_6_latest as the best model according to F1-score. Therefore all following results are based on this model.
+We pick `model_6_latest` as the best model according to F1-score. Therefore all following results are based on this model.
 
 ## Visualization of the classification results
-Note that the clusters vary a lot depending on the model used. This can be observed by comparing a few of the visualizations in the `finetuned_model_visualized` folder.<br/>
-It is important to mention, that the axes differ from plot to plot as each plot is reduced to 2 dimensions using PCA individually.<br/>
+Note that the clusters vary a lot depending on the model used. This can be observed by comparing a few of the visualizations in the `finetuned_model_visualized` folder.\
+It is important to mention, that the axes differ from plot to plot as each plot is reduced to 2 dimensions using PCA individually.\
 ![PCA of the classification results](finetuned_model_visualized/pca_model_6_latest_2d.png)
 
-As an example we classify a piece of a speech from Goebbels (the Propaganda Minister of the Third Reich) and map it onto the space of the speeches from the current parties of the Bundestag.<br/>
+As an example we classify a piece of a speech from Goebbels (the Propaganda Minister of the Third Reich) and map it onto the space of the speeches from the current parties of the Bundestag.\
 ![Classification results of Goebbels speech](finetuned_model_visualized/other_speeches/speech_Goebbels_model_6_latest.png)
 
 [TODO: finish]: #
