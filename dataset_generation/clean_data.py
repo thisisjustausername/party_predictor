@@ -22,10 +22,6 @@ min_chunk_length: int = 200
 # Load the protocols and party scores from the JSON files.
 with open('datasets/protocols_speeches.json', 'r') as f:
     protocols_speeches = json.load(f)
-
-# Load the party scores from the JSON file.
-with open('datasets/party_scores.json', 'r') as f:
-    party_scores = json.load(f)
 ######### END LOAD DATA #########
 
 ######### CLEAN DATA #########
@@ -40,7 +36,7 @@ if write:
         json.dump(protocols_speeches, f, indent=4)
 
 # only keep speeches from parties, that are represented in the party scores
-clean_data = [i for i in protocols_speeches if i['talker']['party'] in party_scores]
+clean_data = [i for i in protocols_speeches if i['talker']['party'] in params.ner_labels]
 # remove empty speeches
 clean_data = [i for i in clean_data if i['speech'] != '']
 # for i in clean_data:
