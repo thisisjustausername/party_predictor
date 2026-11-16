@@ -277,6 +277,7 @@ result['overall_test_accuracy'] = res_test['overall_accuracy']
 result['overall_latest_test_precision'] = res_test_latest['overall_precision']
 result['overall_latest_test_recall'] = res_test_latest['overall_recall']
 result['overall_latest_test_accuracy'] = res_test_latest['overall_accuracy']
+result['overall_latest_test_f1'] = res_test_latest['overall_f1']
 
 # TODO: remove commented code
 # save the model and the stats of the training
